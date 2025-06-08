@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../viewmodels/income_viewmodel.dart';
 import '../models/income.dart';
 import '../widgets/income_form.dart';
+import '../widgets/quick_income_widget.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class IncomeScreen extends StatelessWidget {
@@ -56,7 +57,12 @@ class IncomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  ),                ),
+                const SizedBox(height: 16),
+
+                // クイック登録
+                QuickIncomeWidget(
+                  onIncomeAdded: () => viewModel.loadIncomes(),
                 ),
                 const SizedBox(height: 16),
 
@@ -93,14 +99,7 @@ class IncomeScreen extends StatelessWidget {
                 _buildIncomeList(context, viewModel),
               ],            ),
           ),
-        ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddIncomeDialog(context, viewModel),
-        tooltip: '収入を追加',
-        child: const Icon(Icons.add),
-        backgroundColor: Colors.green,
+        ),        ),
       ),
     );
   }
@@ -178,7 +177,7 @@ class IncomeScreen extends StatelessWidget {
                           final date = sortedMonths[groupIndex];
                           final value = monthlyTotals[date];
                           return BarTooltipItem(
-                            '${date}\n¥${value?.toStringAsFixed(0)}',
+                            '$date\n¥${value?.toStringAsFixed(0)}',
                             const TextStyle(color: Colors.white),
                           );
                         },
@@ -423,26 +422,7 @@ class IncomeScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  void _showAddIncomeDialog(BuildContext context, IncomeViewModel viewModel) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('収入を追加'),
-          content: SingleChildScrollView(
-            child: IncomeForm(
-              onSave: (income) {
-                viewModel.addIncome(income);
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
+    );  }
 
   void _showEditIncomeDialog(
     BuildContext context,
