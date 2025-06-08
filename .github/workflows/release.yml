@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.8.1'
+        channel: 'stable'
+
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Get dependencies
+      run: flutter pub get
+
+    - name: Run tests
+      run: flutter test
+
+    - name: Build Android APK
+      run: flutter build apk --release
+
+    - name: Build Android App Bundle
+      run: flutter build appbundle --release
+
+    - name: Create Release Archive
+      run: |
+        mkdir -p release
+        cp build/app/outputs/flutter-apk/app-release.apk release/MoneyG-Android-${{ github.ref_name }}.apk
+        cp build/app/outputs/bundle/release/app-release.aab release/MoneyG-Android-${{ github.ref_name }}.aab
+        cd release
+        zip -r MoneyG-Android-Release-${{ github.ref_name }}.zip *.apk *.aab
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          release/MoneyG-Android-${{ github.ref_name }}.apk
+          release/MoneyG-Android-${{ github.ref_name }}.aab
+          release/MoneyG-Android-Release-${{ github.ref_name }}.zip
+        name: 'Money:G ${{ github.ref_name }}'
+        body: |
+          ## 🎉 Money:G ${{ github.ref_name }} リリース
+          
+          ### 📱 ダウンロード
+          - **APK**: 直接インストール用
+          - **AAB**: Google Play Store用
+          - **ZIP**: 全ファイル含む圧縮版
+          
+          ### 📋 主な変更点
+          [CHANGELOG.md](CHANGELOG.md)をご確認ください。
+          
+          ### 📱 インストール方法
+          1. APKファイルをダウンロード
+          2. 端末の設定で「提供元不明のアプリ」を許可
+          3. APKファイルをタップしてインストール
+          
+          ### 🔒 セキュリティ
+          このリリースは公式のGitHub Actionsでビルドされています。
+          
+          ### 🐛 問題を発見した場合
+          [Issues](https://github.com/paraccoli/flutter_finance_app/issues)でご報告ください。
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
