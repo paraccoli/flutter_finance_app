@@ -2,7 +2,7 @@
 name: Question
 about: 使い方や技術的な質問をする
 title: "[QUESTION] "
-labels: ''
+labels: help-wanted, question
 assignees: ''
 
 ---
