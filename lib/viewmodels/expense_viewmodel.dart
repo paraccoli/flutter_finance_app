@@ -14,14 +14,23 @@ class ExpenseViewModel extends ChangeNotifier {
   List<Expense> get expenses => _expenses;
   DateTime get startDate => _startDate;
   DateTime get endDate => _endDate;
-
   // 初期化
   Future<void> loadExpenses() async {
-    _expenses = await _databaseService.getExpensesByDateRange(
-      _startDate,
-      _endDate,
-    );
-    notifyListeners();
+    try {
+      debugPrint('ExpenseViewModel: 支出リストを読み込み中...');
+      _expenses = await _databaseService.getExpensesByDateRange(
+        _startDate,
+        _endDate,
+      );
+      debugPrint('ExpenseViewModel: ${_expenses.length}件の支出を読み込みました');
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('ExpenseViewModel: 支出読み込み中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      // エラーが発生してもアプリが停止しないように空のリストを設定
+      _expenses = [];
+      notifyListeners();
+    }
   }
   // 日付範囲の変更
   void setDateRange(DateTime start, DateTime end) {
@@ -34,17 +43,34 @@ class ExpenseViewModel extends ChangeNotifier {
     debugPrint('ExpenseViewModel: 日付範囲を設定しました - $_startDate から $_endDate');
     loadExpenses();
   }
-
   // 支出の追加
   Future<void> addExpense(Expense expense) async {
-    await _databaseService.insertExpense(expense);
-    await loadExpenses();
+    try {
+      debugPrint('ExpenseViewModel: 支出を追加中... 金額: ${expense.amount}, カテゴリ: ${expense.category}');
+      await _databaseService.insertExpense(expense);
+      debugPrint('ExpenseViewModel: 支出の追加が完了しました');
+      await loadExpenses();
+      debugPrint('ExpenseViewModel: 支出リストの再読み込みが完了しました');
+    } catch (e, stackTrace) {
+      debugPrint('ExpenseViewModel: 支出追加中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      // エラーを再スローして上位でハンドリングできるようにする
+      rethrow;
+    }
   }
-
   // 支出の更新
   Future<void> updateExpense(Expense expense) async {
-    await _databaseService.updateExpense(expense);
-    await loadExpenses();
+    try {
+      debugPrint('ExpenseViewModel: 支出を更新中... ID: ${expense.id}, 金額: ${expense.amount}');
+      await _databaseService.updateExpense(expense);
+      debugPrint('ExpenseViewModel: 支出の更新が完了しました');
+      await loadExpenses();
+      debugPrint('ExpenseViewModel: 支出リストの再読み込みが完了しました');
+    } catch (e, stackTrace) {
+      debugPrint('ExpenseViewModel: 支出更新中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
   }
 
   // 支出の削除

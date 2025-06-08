@@ -122,8 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
-  }
-  void _showAddExpenseDialog() {
+  }  void _showAddExpenseDialog() {
     final expenseViewModel =
         Provider.of<ExpenseViewModel>(context, listen: false);
     showDialog(
@@ -133,18 +132,18 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('支出を追加'),
           content: SingleChildScrollView(
             child: ExpenseForm(
-              onSave: (expense) {
-                expenseViewModel.addExpense(expense);
-                Navigator.of(context).pop();
+              onSave: (expense) async {
+                await expenseViewModel.addExpense(expense);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),
         );
       },
     );
-  }
-
-  void _showAddIncomeDialog() {
+  }  void _showAddIncomeDialog() {
     final incomeViewModel =
         Provider.of<IncomeViewModel>(context, listen: false);
     showDialog(
@@ -154,9 +153,11 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('収入を追加'),
           content: SingleChildScrollView(
             child: IncomeForm(
-              onSave: (income) {
-                incomeViewModel.addIncome(income);
-                Navigator.of(context).pop();
+              onSave: (income) async {
+                await incomeViewModel.addIncome(income);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),

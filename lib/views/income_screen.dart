@@ -423,7 +423,6 @@ class IncomeScreen extends StatelessWidget {
         );
       },
     );  }
-
   void _showEditIncomeDialog(
     BuildContext context,
     IncomeViewModel viewModel,
@@ -434,11 +433,13 @@ class IncomeScreen extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('収入を編集'),
-          content: SingleChildScrollView(
-            child: IncomeForm(
+          content: SingleChildScrollView(            child: IncomeForm(
               income: income,
-              onSave: (updatedIncome) {
-                viewModel.updateIncome(updatedIncome);
+              onSave: (updatedIncome) async {
+                await viewModel.updateIncome(updatedIncome);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),

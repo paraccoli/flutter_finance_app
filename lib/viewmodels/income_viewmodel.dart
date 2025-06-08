@@ -14,14 +14,22 @@ class IncomeViewModel extends ChangeNotifier {
   List<Income> get incomes => _incomes;
   DateTime get startDate => _startDate;
   DateTime get endDate => _endDate;
-
   // 初期化
   Future<void> loadIncomes() async {
-    _incomes = await _databaseService.getIncomesByDateRange(
-      _startDate,
-      _endDate,
-    );
-    notifyListeners();
+    try {
+      debugPrint('IncomeViewModel: 収入リストを読み込み中...');
+      _incomes = await _databaseService.getIncomesByDateRange(
+        _startDate,
+        _endDate,
+      );
+      debugPrint('IncomeViewModel: ${_incomes.length}件の収入を読み込みました');
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('IncomeViewModel: 収入読み込み中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      _incomes = [];
+      notifyListeners();
+    }
   }
   // 日付範囲の変更
   void setDateRangeExplicit(DateTime start, DateTime end) {
@@ -34,23 +42,47 @@ class IncomeViewModel extends ChangeNotifier {
     debugPrint('IncomeViewModel: 日付範囲を設定しました - $_startDate から $_endDate');
     loadIncomes();
   }
-
   // 収入の追加
   Future<void> addIncome(Income income) async {
-    await _databaseService.insertIncome(income);
-    await loadIncomes();
+    try {
+      debugPrint('IncomeViewModel: 収入を追加中... 金額: ${income.amount}, カテゴリ: ${income.category}');
+      await _databaseService.insertIncome(income);
+      debugPrint('IncomeViewModel: 収入の追加が完了しました');
+      await loadIncomes();
+      debugPrint('IncomeViewModel: 収入リストの再読み込みが完了しました');
+    } catch (e, stackTrace) {
+      debugPrint('IncomeViewModel: 収入追加中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
   }
-
   // 収入の更新
   Future<void> updateIncome(Income income) async {
-    await _databaseService.updateIncome(income);
-    await loadIncomes();
+    try {
+      debugPrint('IncomeViewModel: 収入を更新中... ID: ${income.id}, 金額: ${income.amount}');
+      await _databaseService.updateIncome(income);
+      debugPrint('IncomeViewModel: 収入の更新が完了しました');
+      await loadIncomes();
+      debugPrint('IncomeViewModel: 収入リストの再読み込みが完了しました');
+    } catch (e, stackTrace) {
+      debugPrint('IncomeViewModel: 収入更新中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
   }
-
   // 収入の削除
   Future<void> deleteIncome(int id) async {
-    await _databaseService.deleteIncome(id);
-    await loadIncomes();
+    try {
+      debugPrint('IncomeViewModel: 収入を削除中... ID: $id');
+      await _databaseService.deleteIncome(id);
+      debugPrint('IncomeViewModel: 収入の削除が完了しました');
+      await loadIncomes();
+      debugPrint('IncomeViewModel: 収入リストの再読み込みが完了しました');
+    } catch (e, stackTrace) {
+      debugPrint('IncomeViewModel: 収入削除中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
   }
 
   // カテゴリ別の合計金額を計算

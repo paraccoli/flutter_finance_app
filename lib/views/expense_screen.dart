@@ -201,9 +201,7 @@ class ExpenseScreen extends StatelessWidget {
           ),
         );
       },
-    );  }
-  
-  void _showEditExpenseDialog(BuildContext context, ExpenseViewModel viewModel, Expense expense) {
+    );  }  void _showEditExpenseDialog(BuildContext context, ExpenseViewModel viewModel, Expense expense) {
     showDialog(
       context: context,
       builder: (context) {
@@ -212,8 +210,11 @@ class ExpenseScreen extends StatelessWidget {
           content: SingleChildScrollView(
             child: ExpenseForm(
               expense: expense,
-              onSave: (updatedExpense) {
-                viewModel.updateExpense(updatedExpense);
+              onSave: (updatedExpense) async {
+                await viewModel.updateExpense(updatedExpense);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),

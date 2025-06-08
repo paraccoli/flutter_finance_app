@@ -148,11 +148,19 @@ class DatabaseService {
       )
     ''');
   }
-
   // 支出データの操作メソッド
   Future<int> insertExpense(Expense expense) async {
-    Database db = await database;
-    return await db.insert('expenses', expense.toMap());
+    try {
+      debugPrint('DatabaseService: 支出を挿入中... 金額: ${expense.amount}, カテゴリ: ${expense.category}');
+      Database db = await database;
+      final result = await db.insert('expenses', expense.toMap());
+      debugPrint('DatabaseService: 支出の挿入が完了しました。ID: $result');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('DatabaseService: 支出挿入中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
   }
 
   Future<List<Expense>> getExpenses() async {
@@ -255,13 +263,20 @@ class DatabaseService {
 
   Future<int> deleteExpense(int id) async {
     Database db = await database;
-    return await db.delete('expenses', where: 'id = ?', whereArgs: [id]);
-  }
+    return await db.delete('expenses', where: 'id = ?', whereArgs: [id]);  }
 
   // 収入データの操作メソッド
   Future<int> insertIncome(Income income) async {
-    Database db = await database;
-    return await db.insert('incomes', income.toMap());
+    try {
+      debugPrint('DatabaseService: 収入を挿入中... 金額: ${income.amount}, カテゴリ: ${income.category}');
+      Database db = await database;
+      final result = await db.insert('incomes', income.toMap());
+      debugPrint('DatabaseService: 収入の挿入が完了しました。ID: $result');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('DatabaseService: 収入挿入中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;    }
   }
 
   Future<List<Income>> getIncomes() async {
@@ -270,7 +285,9 @@ class DatabaseService {
     return List.generate(maps.length, (i) {
       return Income.fromMap(maps[i]);
     });
-  }  Future<List<Income>> getIncomesByDateRange(
+  }
+
+  Future<List<Income>> getIncomesByDateRange(
     DateTime start,
     DateTime end,
   ) async {
