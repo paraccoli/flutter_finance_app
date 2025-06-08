@@ -19,19 +19,19 @@ class ExpenseScreen extends StatelessWidget {
     // 合計金額を計算
     final totalExpense = categoryTotals.values.fold<double>(
         0, (previousValue, amount) => previousValue + amount);
-    
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => viewModel.loadExpenses(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 日付範囲選択
-                _buildDateRangeSelector(context, viewModel),
+      return Scaffold(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () => viewModel.loadExpenses(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 日付範囲選択
+                  _buildDateRangeSelector(context, viewModel),
                 const SizedBox(height: 16),
                 
                 // 合計金額表示
@@ -96,9 +96,9 @@ class ExpenseScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _buildExpenseList(context, viewModel),
-              ],
-            ),
+              ],            ),
           ),
+        ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -282,9 +282,10 @@ class ExpenseScreen extends StatelessWidget {
       case ExpenseCategory.shopping:
         return Colors.orange;
       case ExpenseCategory.health:
-        return Colors.teal;
-      case ExpenseCategory.education:
+        return Colors.teal;      case ExpenseCategory.education:
         return Colors.indigo;
+      case ExpenseCategory.rent:
+        return Colors.brown;
       case ExpenseCategory.other:
         return Colors.grey;
     }
@@ -303,9 +304,10 @@ class ExpenseScreen extends StatelessWidget {
       case ExpenseCategory.shopping:
         return Icons.shopping_bag;
       case ExpenseCategory.health:
-        return Icons.healing;
-      case ExpenseCategory.education:
+        return Icons.healing;      case ExpenseCategory.education:
         return Icons.school;
+      case ExpenseCategory.rent:
+        return Icons.home;
       case ExpenseCategory.other:
         return Icons.more_horiz;
     }

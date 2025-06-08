@@ -1,16 +1,22 @@
+import 'package:flutter/material.dart';
+
 /// 支出カテゴリを定義する列挙型
 enum ExpenseCategory {
-  food('食費'),
-  transportation('交通費'),
-  entertainment('娯楽'),
-  utilities('光熱費'),
-  shopping('買い物'),
-  health('健康・医療'),
-  education('教育'),
-  other('その他');
+  food('食費', Colors.orange, Icons.fastfood),
+  transportation('交通費', Colors.blue, Icons.directions_bus),
+  entertainment('娯楽', Colors.purple, Icons.movie),
+  utilities('光熱費', Colors.yellow, Icons.flash_on),
+  shopping('買い物', Colors.pink, Icons.shopping_bag),
+  health('健康・医療', Colors.red, Icons.favorite),
+  education('教育', Colors.green, Icons.school),
+  rent('家賃', Colors.brown, Icons.home),
+  other('その他', Colors.grey, Icons.category);
 
   final String displayName;
-  const ExpenseCategory(this.displayName);
+  final Color color;
+  final IconData icon;
+
+  const ExpenseCategory(this.displayName, this.color, this.icon);
 
   @override
   String toString() => displayName;

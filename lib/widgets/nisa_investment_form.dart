@@ -5,12 +5,8 @@ import '../models/nisa_investment.dart';
 class NisaInvestmentForm extends StatefulWidget {
   final Function(NisaInvestment) onSave;
   final NisaInvestment? investment; // 編集時に使用
-  
-  const NisaInvestmentForm({
-    super.key,
-    required this.onSave,
-    this.investment,
-  });
+
+  const NisaInvestmentForm({super.key, required this.onSave, this.investment});
 
   @override
   State<NisaInvestmentForm> createState() => _NisaInvestmentFormState();
@@ -24,16 +20,15 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
   late double _currentValue;
   late DateTime _lastUpdated;
   late int _contributionDay;
-  
+
   final TextEditingController _lastUpdatedController = TextEditingController();
-  
+
   @override
   void initState() {
-    super.initState();
-    // 編集モードの場合は既存の値をセット
+    super.initState(); // 編集モードの場合は既存の値をセット
     if (widget.investment != null) {
-      _name = widget.investment!.name;
-      _initialAmount = widget.investment!.initialAmount;
+      _name = widget.investment!.stockName;
+      _initialAmount = widget.investment!.investedAmount;
       _monthlyContribution = widget.investment!.monthlyContribution;
       _currentValue = widget.investment!.currentValue;
       _lastUpdated = widget.investment!.lastUpdated;
@@ -47,10 +42,10 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
       _lastUpdated = DateTime.now();
       _contributionDay = 10; // デフォルトは10日
     }
-    
+
     _lastUpdatedController.text = DateFormat('yyyy/MM/dd').format(_lastUpdated);
   }
-  
+
   @override
   void dispose() {
     _lastUpdatedController.dispose();
@@ -82,7 +77,7 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // 初期投資額入力
           TextFormField(
             decoration: const InputDecoration(
@@ -90,7 +85,9 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
               prefixIcon: Icon(Icons.money),
             ),
             keyboardType: TextInputType.number,
-            initialValue: widget.investment != null ? _initialAmount.toString() : '',
+            initialValue: widget.investment != null
+                ? _initialAmount.toString()
+                : '',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return '初期投資額を入力してください';
@@ -105,7 +102,7 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // 月々の拠出額入力
           TextFormField(
             decoration: const InputDecoration(
@@ -113,7 +110,9 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
               prefixIcon: Icon(Icons.calendar_month),
             ),
             keyboardType: TextInputType.number,
-            initialValue: widget.investment != null ? _monthlyContribution.toString() : '',
+            initialValue: widget.investment != null
+                ? _monthlyContribution.toString()
+                : '',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return '月々の拠出額を入力してください';
@@ -128,7 +127,7 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // 現在の評価額入力
           TextFormField(
             decoration: const InputDecoration(
@@ -136,7 +135,9 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
               prefixIcon: Icon(Icons.trending_up),
             ),
             keyboardType: TextInputType.number,
-            initialValue: widget.investment != null ? _currentValue.toString() : '',
+            initialValue: widget.investment != null
+                ? _currentValue.toString()
+                : '',
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return '現在の評価額を入力してください';
@@ -151,7 +152,7 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // 最終更新日選択
           TextFormField(
             controller: _lastUpdatedController,
@@ -167,17 +168,19 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
                 firstDate: DateTime(2020),
                 lastDate: DateTime.now(),
               );
-              
+
               if (pickedDate != null) {
                 setState(() {
                   _lastUpdated = pickedDate;
-                  _lastUpdatedController.text = DateFormat('yyyy/MM/dd').format(_lastUpdated);
+                  _lastUpdatedController.text = DateFormat(
+                    'yyyy/MM/dd',
+                  ).format(_lastUpdated);
                 });
               }
             },
           ),
           const SizedBox(height: 16),
-          
+
           // 拠出日入力
           TextFormField(
             decoration: const InputDecoration(
@@ -201,23 +204,25 @@ class _NisaInvestmentFormState extends State<NisaInvestmentForm> {
             },
           ),
           const SizedBox(height: 24),
-          
+
           // 保存ボタン
           ElevatedButton(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                
+
                 final investment = NisaInvestment(
                   id: widget.investment?.id,
-                  name: _name,
-                  initialAmount: _initialAmount,
+                  stockName: _name,
+                  ticker: '', // ティッカーシンボルはフォームに追加していないのでダミー値
+                  investedAmount: _initialAmount,
                   monthlyContribution: _monthlyContribution,
                   currentValue: _currentValue,
+                  purchaseDate: _lastUpdated, // 購入日も追加
                   lastUpdated: _lastUpdated,
                   contributionDay: _contributionDay,
                 );
-                
+
                 widget.onSave(investment);
                 Navigator.pop(context);
               }

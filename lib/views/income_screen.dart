@@ -14,24 +14,23 @@ class IncomeScreen extends StatelessWidget {
     final viewModel = Provider.of<IncomeViewModel>(context);
     final categoryTotals = viewModel.getCategoryTotals();
     final monthlyTotals = viewModel.getMonthlyTotals();
-    
+
     // 合計金額を計算
-    final totalIncome = viewModel.getTotalIncome();
-    
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => viewModel.loadIncomes(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 日付範囲選択
-                _buildDateRangeSelector(context, viewModel),
+    final totalIncome = viewModel.getTotalIncome();    return Scaffold(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () => viewModel.loadIncomes(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 日付範囲選択
+                  _buildDateRangeSelector(context, viewModel),
                 const SizedBox(height: 16),
-                
+
                 // 合計金額表示
                 Card(
                   elevation: 4,
@@ -60,7 +59,7 @@ class IncomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // 月次収入グラフ
                 if (monthlyTotals.isNotEmpty)
                   _buildMonthlyBarChart(monthlyTotals)
@@ -72,7 +71,7 @@ class IncomeScreen extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 16),
-                
+
                 // カテゴリ円グラフ
                 if (categoryTotals.isNotEmpty)
                   _buildCategoryPieChart(categoryTotals)
@@ -84,20 +83,17 @@ class IncomeScreen extends StatelessWidget {
                     ),
                   ),
                 const SizedBox(height: 16),
-                
+
                 // 収入リスト
                 const Text(
                   '収入リスト',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 _buildIncomeList(context, viewModel),
-              ],
-            ),
+              ],            ),
           ),
+        ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -108,17 +104,18 @@ class IncomeScreen extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildDateRangeSelector(BuildContext context, IncomeViewModel viewModel) {
+
+  Widget _buildDateRangeSelector(
+    BuildContext context,
+    IncomeViewModel viewModel,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           '${DateFormat('yyyy/MM/dd').format(viewModel.startDate)} - '
           '${DateFormat('yyyy/MM/dd').format(viewModel.endDate)}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         TextButton(
           onPressed: () => _selectDateRange(context, viewModel),
@@ -127,28 +124,34 @@ class IncomeScreen extends StatelessWidget {
       ],
     );
   }
-  
-  Future<void> _selectDateRange(BuildContext context, IncomeViewModel viewModel) async {
+
+  Future<void> _selectDateRange(
+    BuildContext context,
+    IncomeViewModel viewModel,
+  ) async {
     final initialDateRange = DateTimeRange(
       start: viewModel.startDate,
       end: viewModel.endDate,
     );
-    
+
     final pickedDateRange = await showDateRangePicker(
       context: context,
       initialDateRange: initialDateRange,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
-    
+
     if (pickedDateRange != null) {
-      viewModel.setDateRange(pickedDateRange.start, pickedDateRange.end);
+      viewModel.setDateRangeExplicit(
+        pickedDateRange.start,
+        pickedDateRange.end,
+      );
     }
   }
-  
-  Widget _buildMonthlyBarChart(Map<DateTime, double> monthlyTotals) {
+
+  Widget _buildMonthlyBarChart(Map<String, double> monthlyTotals) {
     final sortedMonths = monthlyTotals.keys.toList()..sort();
-    
+
     return AspectRatio(
       aspectRatio: 1.6,
       child: Card(
@@ -160,10 +163,7 @@ class IncomeScreen extends StatelessWidget {
             children: [
               const Text(
                 '月別収入',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Expanded(
@@ -178,7 +178,7 @@ class IncomeScreen extends StatelessWidget {
                           final date = sortedMonths[groupIndex];
                           final value = monthlyTotals[date];
                           return BarTooltipItem(
-                            '${DateFormat('yyyy/MM').format(date)}\n¥${value?.toStringAsFixed(0)}',
+                            '${date}\n¥${value?.toStringAsFixed(0)}',
                             const TextStyle(color: Colors.white),
                           );
                         },
@@ -190,12 +190,15 @@ class IncomeScreen extends StatelessWidget {
                         sideTitles: SideTitles(
                           showTitles: true,
                           getTitlesWidget: (value, meta) {
-                            if (value.toInt() >= 0 && value.toInt() < sortedMonths.length) {
-                              final date = sortedMonths[value.toInt()];
+                            if (value.toInt() >= 0 &&
+                                value.toInt() < sortedMonths.length) {
+                              final dateStr = sortedMonths[value.toInt()];
+                              // 形式が "yyyy-MM" と仮定して、月の部分だけを抽出
+                              final month = dateStr.split('-')[1];
                               return Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
-                                  DateFormat('MM').format(date),
+                                  month,
                                   style: const TextStyle(fontSize: 10),
                                 ),
                               );
@@ -226,7 +229,10 @@ class IncomeScreen extends StatelessWidget {
                     ),
                     borderData: FlBorderData(show: false),
                     gridData: const FlGridData(show: false),
-                    barGroups: _getMonthlyBarGroups(sortedMonths, monthlyTotals),
+                    barGroups: _getMonthlyBarGroups(
+                      sortedMonths,
+                      monthlyTotals,
+                    ),
                   ),
                 ),
               ),
@@ -236,20 +242,22 @@ class IncomeScreen extends StatelessWidget {
       ),
     );
   }
-  
-  double _getMaxMonthlyValue(Map<DateTime, double> monthlyTotals) {
+
+  double _getMaxMonthlyValue(Map<String, double> monthlyTotals) {
     if (monthlyTotals.isEmpty) return 1000;
-    return monthlyTotals.values.reduce((max, value) => max > value ? max : value);
+    return monthlyTotals.values.reduce(
+      (max, value) => max > value ? max : value,
+    );
   }
-  
+
   List<BarChartGroupData> _getMonthlyBarGroups(
-    List<DateTime> sortedMonths, 
-    Map<DateTime, double> monthlyTotals
+    List<String> sortedMonths,
+    Map<String, double> monthlyTotals,
   ) {
     return List.generate(sortedMonths.length, (index) {
       final month = sortedMonths[index];
       final value = monthlyTotals[month] ?? 0;
-      
+
       return BarChartGroupData(
         x: index,
         barRods: [
@@ -266,7 +274,7 @@ class IncomeScreen extends StatelessWidget {
       );
     });
   }
-  
+
   Widget _buildCategoryPieChart(Map<IncomeCategory, double> categoryTotals) {
     return AspectRatio(
       aspectRatio: 1.3,
@@ -279,10 +287,7 @@ class IncomeScreen extends StatelessWidget {
             children: [
               const Text(
                 'カテゴリ別収入',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Expanded(
@@ -302,10 +307,12 @@ class IncomeScreen extends StatelessWidget {
       ),
     );
   }
-  
-  List<PieChartSectionData> _getCategorySections(Map<IncomeCategory, double> categoryTotals) {
+
+  List<PieChartSectionData> _getCategorySections(
+    Map<IncomeCategory, double> categoryTotals,
+  ) {
     final List<PieChartSectionData> sections = [];
-    
+
     // カテゴリごとの色を定義
     final Map<IncomeCategory, Color> categoryColors = {
       IncomeCategory.salary: Colors.green,
@@ -315,7 +322,7 @@ class IncomeScreen extends StatelessWidget {
       IncomeCategory.gift: Colors.pink,
       IncomeCategory.other: Colors.grey,
     };
-    
+
     categoryTotals.forEach((category, amount) {
       sections.add(
         PieChartSectionData(
@@ -331,10 +338,10 @@ class IncomeScreen extends StatelessWidget {
         ),
       );
     });
-    
+
     return sections;
   }
-  
+
   Widget _buildCategoryLegend(Map<IncomeCategory, double> categoryTotals) {
     return Wrap(
       spacing: 16.0,
@@ -348,15 +355,11 @@ class IncomeScreen extends StatelessWidget {
           IncomeCategory.gift: Colors.pink,
           IncomeCategory.other: Colors.grey,
         };
-        
+
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 12,
-              height: 12,
-              color: categoryColors[category],
-            ),
+            Container(width: 12, height: 12, color: categoryColors[category]),
             const SizedBox(width: 4),
             Text(category.toString()),
           ],
@@ -364,21 +367,19 @@ class IncomeScreen extends StatelessWidget {
       }).toList(),
     );
   }
-  
+
   Widget _buildIncomeList(BuildContext context, IncomeViewModel viewModel) {
     final incomes = viewModel.incomes;
-    
+
     if (incomes.isEmpty) {
       return const Card(
         child: Padding(
           padding: EdgeInsets.all(16.0),
-          child: Center(
-            child: Text('データがありません'),
-          ),
+          child: Center(child: Text('データがありません')),
         ),
       );
     }
-    
+
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -409,11 +410,13 @@ class IncomeScreen extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () => _showEditIncomeDialog(context, viewModel, income),
+                  onPressed: () =>
+                      _showEditIncomeDialog(context, viewModel, income),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete),
-                  onPressed: () => _showDeleteConfirmationDialog(context, viewModel, income),
+                  onPressed: () =>
+                      _showDeleteConfirmationDialog(context, viewModel, income),
                 ),
               ],
             ),
@@ -422,7 +425,7 @@ class IncomeScreen extends StatelessWidget {
       },
     );
   }
-  
+
   void _showAddIncomeDialog(BuildContext context, IncomeViewModel viewModel) {
     showDialog(
       context: context,
@@ -440,8 +443,12 @@ class IncomeScreen extends StatelessWidget {
       },
     );
   }
-  
-  void _showEditIncomeDialog(BuildContext context, IncomeViewModel viewModel, Income income) {
+
+  void _showEditIncomeDialog(
+    BuildContext context,
+    IncomeViewModel viewModel,
+    Income income,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -459,8 +466,12 @@ class IncomeScreen extends StatelessWidget {
       },
     );
   }
-  
-  void _showDeleteConfirmationDialog(BuildContext context, IncomeViewModel viewModel, Income income) {
+
+  void _showDeleteConfirmationDialog(
+    BuildContext context,
+    IncomeViewModel viewModel,
+    Income income,
+  ) {
     showDialog(
       context: context,
       builder: (context) {
@@ -488,7 +499,7 @@ class IncomeScreen extends StatelessWidget {
       },
     );
   }
-  
+
   Color _getCategoryColor(IncomeCategory category) {
     switch (category) {
       case IncomeCategory.salary:
@@ -505,7 +516,7 @@ class IncomeScreen extends StatelessWidget {
         return Colors.grey;
     }
   }
-  
+
   IconData _getCategoryIcon(IncomeCategory category) {
     switch (category) {
       case IncomeCategory.salary:

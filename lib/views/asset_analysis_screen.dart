@@ -44,12 +44,12 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
     final totalIncome = incomeViewModel.getTotalIncome();
     final totalExpense = expenseViewModel.expenses.fold(0.0, (sum, expense) => sum + expense.amount);
     final balance = totalIncome - totalExpense;
-    
-    return Scaffold(
-      body: Column(
-        children: [
-          // 収支サマリーカード
-          Padding(
+      return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            // 収支サマリーカード
+            Padding(
             padding: const EdgeInsets.all(16.0),
             child: Card(
               elevation: 4,
@@ -121,8 +121,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
           // タブコンテンツ
           Expanded(
             child: TabBarView(
-              controller: _tabController,
-              children: [
+              controller: _tabController,              children: [
                 _buildMonthlyBalanceTab(analysisViewModel),
                 _buildAssetForecastTab(analysisViewModel),
                 _buildNisaForecastTab(analysisViewModel),
@@ -130,6 +129,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
             ),
           ),
         ],
+        ),
       ),
     );
   }

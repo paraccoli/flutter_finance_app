@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../viewmodels/expense_viewmodel.dart';
-import '../viewmodels/nisa_viewmodel.dart';
-import '../viewmodels/income_viewmodel.dart';
-import '../viewmodels/asset_analysis_viewmodel.dart';
+import '../viewmodels/theme_viewmodel.dart';
 import 'expense_screen.dart';
-import 'nisa_screen.dart';
 import 'income_screen.dart';
+import 'nisa_screen.dart';
 import 'asset_analysis_screen.dart';
+import 'monthly_report_screen.dart';
+import 'setting_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,56 +15,60 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {  int _selectedIndex = 0;
+class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0;
+
   final List<Widget> _screens = [
     const ExpenseScreen(),
     const IncomeScreen(),
     const NisaScreen(),
     const AssetAnalysisScreen(),
+    const MonthlyReportScreen(),
+    const SettingScreen(),
   ];
-  @override
-  void initState() {
-    super.initState();
-    // 画面が表示されたらデータをロード
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ExpenseViewModel>().loadExpenses();
-      context.read<IncomeViewModel>().loadIncomes();
-      context.read<NisaViewModel>().loadInvestments();
-      context.read<AssetAnalysisViewModel>().loadData();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+    final themeViewModel = Provider.of<ThemeViewModel>(context);
+    final isDark = themeViewModel.isDarkMode;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('個人財務管理'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-      ),
-      body: _screens[_selectedIndex],      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
-            _selectedIndex = index;
+            _currentIndex = index;
           });
         },
-        type: BottomNavigationBarType.fixed, // 4つ以上のアイテムがある場合に必要
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+        selectedItemColor: isDark ? Colors.blue : const Color(0xFF007AFF),
+        unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart),
             label: '支出',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.monetization_on),
+            icon: Icon(Icons.attach_money),
             label: '収入',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.savings),
+            icon: Icon(Icons.trending_up),
             label: 'NISA',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
             label: '資産分析',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assessment),
+            label: '月次レポート',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: '設定',
           ),
         ],
       ),

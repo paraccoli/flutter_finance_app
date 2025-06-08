@@ -1,14 +1,19 @@
+import 'package:flutter/material.dart';
+
 /// 収入カテゴリを定義する列挙型
 enum IncomeCategory {
-  salary('給与'),
-  bonus('ボーナス'),
-  investment('投資収入'),
-  sideJob('副業'),
-  gift('贈与・臨時収入'),
-  other('その他');
+  salary('給与', Colors.green, Icons.attach_money),
+  bonus('ボーナス', Colors.lightGreen, Icons.money),
+  investment('投資収入', Colors.blue, Icons.trending_up),
+  sideJob('副業', Colors.orange, Icons.work),
+  gift('贈与・臨時収入', Colors.pink, Icons.card_giftcard),
+  other('その他', Colors.grey, Icons.add_circle);
 
   final String displayName;
-  const IncomeCategory(this.displayName);
+  final Color color;
+  final IconData icon;
+  
+  const IncomeCategory(this.displayName, this.color, this.icon);
 
   @override
   String toString() => displayName;

@@ -4,6 +4,10 @@ import 'package:intl/intl.dart';
 import '../viewmodels/nisa_viewmodel.dart';
 import '../models/nisa_investment.dart';
 import '../widgets/nisa_investment_form.dart';
+import '../widgets/nisa_performance_chart.dart';
+import '../widgets/nisa_asset_allocation_chart.dart';
+import '../widgets/nisa_forecast_chart.dart';
+import '../widgets/nisa_performance_analysis.dart';
 
 class NisaScreen extends StatelessWidget {
   const NisaScreen({super.key});
@@ -12,29 +16,28 @@ class NisaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final viewModel = Provider.of<NisaViewModel>(context);
     final investments = viewModel.investments;
-    
+
     // 合計値を取得
     final totalInvested = viewModel.getTotalInvestedAmount();
     final totalCurrent = viewModel.getTotalCurrentValue();
     final totalProfit = viewModel.getTotalProfit();
-    
+
     // 利益率の計算
-    final profitRate = totalInvested > 0 
-        ? (totalProfit / totalInvested) * 100 
-        : 0.0;
-    
-    return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: () => viewModel.loadInvestments(),
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // サマリーカード
-                Card(
+    final profitRate = totalInvested > 0
+        ? (totalProfit / totalInvested) * 100
+        : 0.0;    return Scaffold(
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () => viewModel.loadInvestments(),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // サマリーカード
+                  Card(
                   elevation: 4,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -53,13 +56,13 @@ class NisaScreen extends StatelessWidget {
                         _buildSummaryRow('現在評価額', totalCurrent),
                         const SizedBox(height: 8),
                         _buildSummaryRow(
-                          '評価損益', 
+                          '評価損益',
                           totalProfit,
                           isProfit: totalProfit >= 0,
                         ),
                         const SizedBox(height: 8),
                         _buildSummaryRow(
-                          '利益率', 
+                          '利益率',
                           profitRate,
                           isPercentage: true,
                           isProfit: profitRate >= 0,
@@ -69,7 +72,42 @@ class NisaScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                
+
+                // パフォーマンスチャート
+                if (investments.isNotEmpty) ...[
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: NisaPerformanceChart(investments: investments),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 資産配分チャート
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: NisaAssetAllocationChart(investments: investments),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // 将来予測チャート
+                  Card(
+                    elevation: 4,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: NisaForecastChart(
+                        investments: investments,
+                        forecastMonths: 120, // 10年
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+
                 // 投資一覧ヘッダー
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -82,22 +120,21 @@ class NisaScreen extends StatelessWidget {
                       ),
                     ),
                     TextButton.icon(
-                      onPressed: () => _showAddInvestmentDialog(context, viewModel),
+                      onPressed: () =>
+                          _showAddInvestmentDialog(context, viewModel),
                       icon: const Icon(Icons.add),
                       label: const Text('追加'),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                
+
                 // 投資リスト
                 if (investments.isEmpty)
                   const Card(
                     child: Padding(
                       padding: EdgeInsets.all(32.0),
-                      child: Center(
-                        child: Text('投資データがありません'),
-                      ),
+                      child: Center(child: Text('投資データがありません')),
                     ),
                   )
                 else
@@ -107,12 +144,16 @@ class NisaScreen extends StatelessWidget {
                     itemCount: investments.length,
                     itemBuilder: (context, index) {
                       final investment = investments[index];
-                      return _buildInvestmentCard(context, viewModel, investment);
+                      return _buildInvestmentCard(
+                        context,
+                        viewModel,
+                        investment,
+                      );
                     },
                   ),
-              ],
-            ),
+              ],            ),
           ),
+        ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -122,20 +163,22 @@ class NisaScreen extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildSummaryRow(String label, double value, {
+
+  Widget _buildSummaryRow(
+    String label,
+    double value, {
     bool isPercentage = false,
     bool isProfit = true,
   }) {
     final formatter = NumberFormat('#,###');
     String valueText;
-    
+
     if (isPercentage) {
       valueText = '${value.toStringAsFixed(2)}%';
     } else {
       valueText = '¥${formatter.format(value)}';
     }
-    
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -150,37 +193,40 @@ class NisaScreen extends StatelessWidget {
       ],
     );
   }
-  
+
   Widget _buildInvestmentCard(
-    BuildContext context, 
-    NisaViewModel viewModel, 
+    BuildContext context,
+    NisaViewModel viewModel,
     NisaInvestment investment,
   ) {
-    // 利益率の計算
-    final investedAmount = investment.initialAmount;
-    final profit = investment.currentValue - investedAmount;
-    final profitRate = investedAmount > 0 
-        ? (profit / investedAmount) * 100 
-        : 0.0;
-    
     return Card(
       elevation: 2,
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ヘッダー部分（投資名と操作ボタン）
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
-                  child: Text(
-                    investment.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        investment.stockName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        investment.ticker,
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                    ],
                   ),
                 ),
                 Row(
@@ -188,16 +234,16 @@ class NisaScreen extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () => _showEditInvestmentDialog(
-                        context, 
-                        viewModel, 
+                        context,
+                        viewModel,
                         investment,
                       ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () => _showDeleteConfirmationDialog(
-                        context, 
-                        viewModel, 
+                        context,
+                        viewModel,
                         investment,
                       ),
                     ),
@@ -205,79 +251,15 @@ class NisaScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('初期投資額'),
-                Text(
-                  '¥${NumberFormat('#,###').format(investment.initialAmount)}',
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('月々の拠出額'),
-                Text(
-                  '¥${NumberFormat('#,###').format(investment.monthlyContribution)}',
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('現在の評価額'),
-                Text(
-                  '¥${NumberFormat('#,###').format(investment.currentValue)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('利益率'),
-                Text(
-                  '${profitRate.toStringAsFixed(2)}%',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: profitRate >= 0 ? Colors.green : Colors.red,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '毎月${investment.contributionDay}日に拠出',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-                Text(
-                  '最終更新: ${DateFormat('yyyy/MM/dd').format(investment.lastUpdated)}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
+
+            // 詳細な投資分析を表示
+            NisaPerformanceAnalysis(investment: investment),
           ],
         ),
       ),
     );
   }
-  
+
   void _showAddInvestmentDialog(BuildContext context, NisaViewModel viewModel) {
     showDialog(
       context: context,
@@ -295,10 +277,10 @@ class NisaScreen extends StatelessWidget {
       },
     );
   }
-  
+
   void _showEditInvestmentDialog(
-    BuildContext context, 
-    NisaViewModel viewModel, 
+    BuildContext context,
+    NisaViewModel viewModel,
     NisaInvestment investment,
   ) {
     showDialog(
@@ -318,10 +300,10 @@ class NisaScreen extends StatelessWidget {
       },
     );
   }
-  
+
   void _showDeleteConfirmationDialog(
-    BuildContext context, 
-    NisaViewModel viewModel, 
+    BuildContext context,
+    NisaViewModel viewModel,
     NisaInvestment investment,
   ) {
     showDialog(

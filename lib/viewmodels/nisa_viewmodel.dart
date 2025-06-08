@@ -37,13 +37,15 @@ class NisaViewModel extends ChangeNotifier {
   double getTotalInvestedAmount() {
     double total = 0;
     for (var investment in _investments) {
-      total += investment.initialAmount;
-      
+      total += investment.investedAmount;
+
       // 開始日から現在までの月数を計算
       DateTime now = DateTime.now();
-      int monthsSinceStart = (now.year - investment.lastUpdated.year) * 12 + 
-                            now.month - investment.lastUpdated.month;
-      
+      int monthsSinceStart =
+          (now.year - investment.lastUpdated.year) * 12 +
+          now.month -
+          investment.lastUpdated.month;
+
       // 毎月の積立額を合計に加算
       total += investment.monthlyContribution * monthsSinceStart;
     }
@@ -52,7 +54,10 @@ class NisaViewModel extends ChangeNotifier {
 
   // 合計評価額を計算
   double getTotalCurrentValue() {
-    return _investments.fold(0, (sum, investment) => sum + investment.currentValue);
+    return _investments.fold(
+      0,
+      (sum, investment) => sum + investment.currentValue,
+    );
   }
 
   // 評価損益を計算

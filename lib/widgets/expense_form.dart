@@ -4,11 +4,13 @@ import '../models/expense.dart';
 
 class ExpenseForm extends StatefulWidget {
   final Function(Expense) onSave;
+  final VoidCallback? onCancel; // キャンセル時の処理
   final Expense? expense; // 編集時に使用
-  
+
   const ExpenseForm({
     super.key,
     required this.onSave,
+    this.onCancel,
     this.expense,
   });
 
@@ -22,9 +24,9 @@ class _ExpenseFormState extends State<ExpenseForm> {
   late DateTime _date;
   late ExpenseCategory _category;
   String? _note;
-  
+
   final TextEditingController _dateController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
@@ -41,10 +43,10 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _category = ExpenseCategory.food;
       _note = null;
     }
-    
+
     _dateController.text = DateFormat('yyyy/MM/dd').format(_date);
   }
-  
+
   @override
   void dispose() {
     _dateController.dispose();
@@ -80,7 +82,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // 日付選択
           TextFormField(
             controller: _dateController,
@@ -96,7 +98,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 firstDate: DateTime(2020),
                 lastDate: DateTime.now().add(const Duration(days: 1)),
               );
-              
+
               if (pickedDate != null) {
                 setState(() {
                   _date = pickedDate;
@@ -106,7 +108,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // カテゴリ選択
           DropdownButtonFormField<ExpenseCategory>(
             decoration: const InputDecoration(
@@ -129,7 +131,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             },
           ),
           const SizedBox(height: 16),
-          
+
           // メモ入力
           TextFormField(
             decoration: const InputDecoration(
@@ -143,13 +145,13 @@ class _ExpenseFormState extends State<ExpenseForm> {
             },
           ),
           const SizedBox(height: 24),
-          
+
           // 保存ボタン
           ElevatedButton(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
-                
+
                 final expense = Expense(
                   id: widget.expense?.id,
                   amount: _amount,
@@ -157,7 +159,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                   category: _category,
                   note: _note,
                 );
-                
+
                 widget.onSave(expense);
                 Navigator.pop(context);
               }

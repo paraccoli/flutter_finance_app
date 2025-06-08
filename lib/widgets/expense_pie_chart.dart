@@ -47,8 +47,7 @@ class ExpensePieChart extends StatelessWidget {
 
   List<PieChartSectionData> _getSections() {
     final List<PieChartSectionData> sections = [];
-    
-    // カテゴリごとの色を定義
+      // カテゴリごとの色を定義
     final Map<ExpenseCategory, Color> categoryColors = {
       ExpenseCategory.food: Colors.red,
       ExpenseCategory.transportation: Colors.blue,
@@ -57,6 +56,7 @@ class ExpensePieChart extends StatelessWidget {
       ExpenseCategory.shopping: Colors.orange,
       ExpenseCategory.health: Colors.teal,
       ExpenseCategory.education: Colors.indigo,
+      ExpenseCategory.rent: Colors.brown,
       ExpenseCategory.other: Colors.grey,
     };
     
@@ -83,8 +83,7 @@ class ExpensePieChart extends StatelessWidget {
     return Wrap(
       spacing: 16.0,
       runSpacing: 8.0,
-      children: categoryTotals.keys.map((category) {
-        final Map<ExpenseCategory, Color> categoryColors = {
+      children: categoryTotals.keys.map((category) {        final Map<ExpenseCategory, Color> categoryColors = {
           ExpenseCategory.food: Colors.red,
           ExpenseCategory.transportation: Colors.blue,
           ExpenseCategory.entertainment: Colors.green,
@@ -92,6 +91,7 @@ class ExpensePieChart extends StatelessWidget {
           ExpenseCategory.shopping: Colors.orange,
           ExpenseCategory.health: Colors.teal,
           ExpenseCategory.education: Colors.indigo,
+          ExpenseCategory.rent: Colors.brown,
           ExpenseCategory.other: Colors.grey,
         };
         
