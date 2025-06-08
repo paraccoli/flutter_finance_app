@@ -6,6 +6,7 @@ import '../models/expense.dart';
 import '../widgets/expense_bar_chart.dart';
 import '../widgets/expense_pie_chart.dart';
 import '../widgets/expense_form.dart';
+import '../widgets/quick_expense_widget.dart';
 
 class ExpenseScreen extends StatelessWidget {
   const ExpenseScreen({super.key});
@@ -62,6 +63,12 @@ class ExpenseScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 
+                // クイック登録
+                QuickExpenseWidget(
+                  onExpenseAdded: () => viewModel.loadExpenses(),
+                ),
+                const SizedBox(height: 16),
+                
                 // 棒グラフ
                 if (dailyTotals.isNotEmpty)
                   ExpenseBarChart(dailyTotals: dailyTotals)
@@ -98,13 +105,7 @@ class ExpenseScreen extends StatelessWidget {
                 _buildExpenseList(context, viewModel),
               ],            ),
           ),
-        ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddExpenseDialog(context, viewModel),
-        tooltip: '支出を追加',
-        child: const Icon(Icons.add),
+        ),        ),
       ),
     );
   }
@@ -200,26 +201,7 @@ class ExpenseScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-  
-  void _showAddExpenseDialog(BuildContext context, ExpenseViewModel viewModel) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('支出を追加'),
-          content: SingleChildScrollView(
-            child: ExpenseForm(
-              onSave: (expense) {
-                viewModel.addExpense(expense);
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
+    );  }
   
   void _showEditExpenseDialog(BuildContext context, ExpenseViewModel viewModel, Expense expense) {
     showDialog(

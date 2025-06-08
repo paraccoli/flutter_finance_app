@@ -6,14 +6,12 @@ class AppTheme {
   static ThemeData lightTheme() {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: ColorScheme.fromSeed(
+      brightness: Brightness.light,      colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF007AFF), // iOSブルー
         primary: const Color(0xFF007AFF),
         secondary: const Color(0xFF34C759), // 収入用のグリーン系のカラー
         tertiary: const Color(0xFFFF9500), // NISA用のオレンジ系のカラー
-        background: const Color(0xFFF2F2F7), // iOSライトモードの背景色
-        surface: Colors.white,
+        surface: const Color(0xFFF2F2F7), // iOSライトモードの背景色
       ),
       scaffoldBackgroundColor: const Color(0xFFF2F2F7),
       appBarTheme: const AppBarTheme(
@@ -64,14 +62,12 @@ class AppTheme {
   static ThemeData darkTheme() {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      colorScheme: ColorScheme.fromSeed(
+      brightness: Brightness.dark,      colorScheme: ColorScheme.fromSeed(
         seedColor: const Color(0xFF0A84FF), // iOSブルー（ダーク）
         primary: const Color(0xFF0A84FF),
         secondary: const Color(0xFF30D158), // 収入用のグリーン系のカラー（ダーク）
         tertiary: const Color(0xFFFF9F0A), // NISA用のオレンジ系のカラー（ダーク）
-        background: const Color(0xFF1C1C1E), // iOSダークモードの背景色
-        surface: const Color(0xFF2C2C2E), // iOSダークモードのカード背景色
+        surface: const Color(0xFF1C1C1E), // iOSダークモードの背景色
         brightness: Brightness.dark,
       ),
       scaffoldBackgroundColor: const Color(0xFF1C1C1E),

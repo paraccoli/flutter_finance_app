@@ -1,16 +1,14 @@
 import 'dart:async';
-import 'package:sqflite/sqflite.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'dart:math' as Math;
-import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../models/expense.dart';
 import '../models/income.dart';
 import '../models/nisa_investment.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -186,7 +184,7 @@ class DatabaseService {
         debugPrint('最後のレコードの日付: ${allExpenses.last['date']}');
         
         // すべての日付を表示（上限10件）
-        final limit = Math.min(10, allExpenses.length);
+        final limit = math.min(10, allExpenses.length);
         for (var i = 0; i < limit; i++) {
           debugPrint('レコード $i の日付: ${allExpenses[i]['date']}');
         }
@@ -295,7 +293,7 @@ class DatabaseService {
         debugPrint('最後の収入レコードの日付: ${allIncomes.last['date']}');
         
         // すべての日付を表示（上限10件）
-        final limit = Math.min(10, allIncomes.length);
+        final limit = math.min(10, allIncomes.length);
         for (var i = 0; i < limit; i++) {
           debugPrint('収入レコード $i の日付: ${allIncomes[i]['date']}');
         }
@@ -477,6 +475,220 @@ class DatabaseService {
       
     } catch (e) {
       debugPrint('テーブル構造の検証中にエラー: $e');
+    }
+  }
+  
+  /// すべてのデータを削除する
+  Future<void> deleteAllData() async {
+    final db = await database;
+    
+    try {
+      // トランザクション内ですべてのテーブルをクリア
+      await db.transaction((txn) async {
+        await txn.execute('DELETE FROM expenses');
+        await txn.execute('DELETE FROM incomes');
+        await txn.execute('DELETE FROM nisa_investments');
+        
+        // オートインクリメントIDをリセット
+        await txn.execute('DELETE FROM sqlite_sequence WHERE name IN ("expenses", "incomes", "nisa_investments")');
+      });
+      
+      debugPrint('すべてのデータが削除されました');
+    } catch (e) {
+      debugPrint('データ削除中にエラーが発生しました: $e');
+      rethrow;
+    }
+  }
+  
+  /// データベースファイル自体を削除する（完全リセット）
+  Future<void> resetDatabase() async {
+    try {
+      if (_database != null) {
+        await _database!.close();
+        _database = null;
+      }
+      
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      String path = join(documentsDirectory.path, 'finance_app.db');
+      
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        debugPrint('データベースファイルが削除されました: $path');
+      }
+      
+      // データベースを再初期化
+      _database = await _initDatabase();
+      debugPrint('データベースがリセットされました');
+    } catch (e) {
+      debugPrint('データベースリセット中にエラーが発生しました: $e');
+      rethrow;
+    }
+  }
+  
+  /// データをJSONファイルにバックアップする
+  Future<String> createBackup() async {
+    try {
+      final db = await database;
+      
+      // すべてのデータを取得
+      final expensesData = await db.query('expenses');
+      final incomesData = await db.query('incomes');
+      final nisaData = await db.query('nisa_investments');
+      
+      // バックアップデータを構築
+      final backupData = {
+        'version': '1.0',
+        'created_at': DateTime.now().toIso8601String(),
+        'app_name': 'Money:G Finance App',
+        'data': {
+          'expenses': expensesData,
+          'incomes': incomesData,
+          'nisa_investments': nisaData,
+        },
+        'statistics': {
+          'total_expenses': expensesData.length,
+          'total_incomes': incomesData.length,
+          'total_nisa_investments': nisaData.length,
+        }
+      };
+      
+      // JSON文字列に変換
+      final jsonString = jsonEncode(backupData);
+      
+      // バックアップファイルを保存
+      final directory = await getApplicationDocumentsDirectory();
+      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-').replaceAll('.', '-');
+      final fileName = 'MoneyG_Backup_$timestamp.json';
+      final filePath = join(directory.path, fileName);
+      
+      final file = File(filePath);
+      await file.writeAsString(jsonString, encoding: utf8);
+      
+      debugPrint('バックアップが作成されました: $filePath');
+      debugPrint('バックアップサイズ: ${jsonString.length} 文字');
+      
+      return filePath;
+    } catch (e) {
+      debugPrint('バックアップ作成中にエラーが発生しました: $e');
+      rethrow;
+    }
+  }
+  
+  /// JSONファイルからデータを復元する
+  Future<void> restoreFromBackup(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw Exception('バックアップファイルが見つかりません: $filePath');
+      }
+      
+      // バックアップファイルを読み込み
+      final jsonString = await file.readAsString(encoding: utf8);
+      final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
+      
+      // バックアップファイルの検証
+      if (!backupData.containsKey('data') || !backupData.containsKey('version')) {
+        throw Exception('無効なバックアップファイル形式です');
+      }
+      
+      final data = backupData['data'] as Map<String, dynamic>;
+      final db = await database;
+      
+      // 既存データを削除
+      await deleteAllData();
+      
+      // データを復元
+      await db.transaction((txn) async {
+        // 支出データの復元
+        if (data.containsKey('expenses')) {
+          final expenses = data['expenses'] as List<dynamic>;
+          for (final expense in expenses) {
+            final expenseMap = expense as Map<String, dynamic>;
+            await txn.insert('expenses', expenseMap);
+          }
+        }
+        
+        // 収入データの復元
+        if (data.containsKey('incomes')) {
+          final incomes = data['incomes'] as List<dynamic>;
+          for (final income in incomes) {
+            final incomeMap = income as Map<String, dynamic>;
+            await txn.insert('incomes', incomeMap);
+          }
+        }
+        
+        // NISA投資データの復元
+        if (data.containsKey('nisa_investments')) {
+          final nisaInvestments = data['nisa_investments'] as List<dynamic>;
+          for (final nisa in nisaInvestments) {
+            final nisaMap = nisa as Map<String, dynamic>;
+            await txn.insert('nisa_investments', nisaMap);
+          }
+        }
+      });
+      
+      debugPrint('データの復元が完了しました');
+      debugPrint('復元されたデータ:');
+      if (data.containsKey('expenses')) {
+        debugPrint('  支出: ${(data['expenses'] as List).length} 件');
+      }
+      if (data.containsKey('incomes')) {
+        debugPrint('  収入: ${(data['incomes'] as List).length} 件');
+      }
+      if (data.containsKey('nisa_investments')) {
+        debugPrint('  NISA投資: ${(data['nisa_investments'] as List).length} 件');
+      }
+      
+    } catch (e) {
+      debugPrint('データ復元中にエラーが発生しました: $e');
+      rethrow;
+    }
+  }
+  
+  /// バックアップファイルの情報を取得する
+  Future<Map<String, dynamic>?> getBackupInfo(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        return null;
+      }
+      
+      final jsonString = await file.readAsString(encoding: utf8);
+      final backupData = jsonDecode(jsonString) as Map<String, dynamic>;
+      
+      return {
+        'version': backupData['version'] ?? 'Unknown',
+        'created_at': backupData['created_at'] ?? 'Unknown',
+        'app_name': backupData['app_name'] ?? 'Unknown',
+        'statistics': backupData['statistics'] ?? {},
+        'file_size': await file.length(),
+      };
+    } catch (e) {
+      debugPrint('バックアップ情報の取得中にエラー: $e');
+      return null;
+    }
+  }
+  
+  /// 利用可能なバックアップファイルのリストを取得する
+  Future<List<String>> getAvailableBackups() async {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final backupFiles = <String>[];
+      
+      await for (final entity in directory.list()) {
+        if (entity is File && entity.path.contains('MoneyG_Backup_') && entity.path.endsWith('.json')) {
+          backupFiles.add(entity.path);
+        }
+      }
+      
+      // 作成日時でソート（新しい順）
+      backupFiles.sort((a, b) => b.compareTo(a));
+      
+      return backupFiles;
+    } catch (e) {
+      debugPrint('バックアップファイルリストの取得中にエラー: $e');
+      return [];
     }
   }
 }
