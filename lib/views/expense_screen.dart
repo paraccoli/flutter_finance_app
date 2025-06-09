@@ -160,43 +160,63 @@ class ExpenseScreen extends StatelessWidget {
         ),
       );
     }
-    
-    return ListView.builder(
+      return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: expenses.length,
       itemBuilder: (context, index) {
         final expense = expenses[index];
         return Card(
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: _getCategoryColor(expense.category),
-              child: Icon(
-                _getCategoryIcon(expense.category),
+          child: Dismissible(
+            key: Key('expense_${expense.id}'),
+            background: Container(
+              color: Colors.blue,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20),
+              child: const Icon(
+                Icons.edit,
                 color: Colors.white,
+                size: 30,
               ),
             ),
-            title: Text(
-              '¥${NumberFormat('#,###').format(expense.amount)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
+            secondaryBackground: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 30,
               ),
             ),
-            subtitle: Text(
-              '${expense.category} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _showEditExpenseDialog(context, viewModel, expense),
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.startToEnd) {
+                // 左から右にスワイプ = 編集
+                _showEditExpenseDialog(context, viewModel, expense);
+                return false; // アイテムを削除しない
+              } else if (direction == DismissDirection.endToStart) {
+                // 右から左にスワイプ = 削除確認
+                return await _showDeleteConfirmationDialog(context, viewModel, expense);
+              }
+              return false;
+            },
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: _getCategoryColor(expense.category),
+                child: Icon(
+                  _getCategoryIcon(expense.category),
+                  color: Colors.white,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _showDeleteConfirmationDialog(context, viewModel, expense),
+              ),
+              title: Text(
+                '¥${NumberFormat('#,###').format(expense.amount)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+              ),
+              subtitle: Text(
+                '${expense.category} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+              ),
             ),
           ),
         );
@@ -222,9 +242,8 @@ class ExpenseScreen extends StatelessWidget {
       },
     );
   }
-  
-  void _showDeleteConfirmationDialog(BuildContext context, ExpenseViewModel viewModel, Expense expense) {
-    showDialog(
+    Future<bool?> _showDeleteConfirmationDialog(BuildContext context, ExpenseViewModel viewModel, Expense expense) async {
+    return await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -233,13 +252,13 @@ class ExpenseScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, false);
               },
               child: const Text('キャンセル'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, true);
                 if (expense.id != null) {
                   viewModel.deleteExpense(expense.id!);
                 }

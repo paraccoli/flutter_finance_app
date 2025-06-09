@@ -31,8 +31,7 @@ class ExpenseViewModel extends ChangeNotifier {
       _expenses = [];
       notifyListeners();
     }
-  }
-  // 日付範囲の変更
+  }  // 日付範囲の変更
   void setDateRange(DateTime start, DateTime end) {
     // 開始日を日の始まり（00:00:00）に設定
     _startDate = DateTime(start.year, start.month, start.day, 0, 0, 0);
@@ -42,6 +41,21 @@ class ExpenseViewModel extends ChangeNotifier {
     
     debugPrint('ExpenseViewModel: 日付範囲を設定しました - $_startDate から $_endDate');
     loadExpenses();
+  }
+
+  // すべての支出を表示（日付範囲制限なし）
+  Future<void> loadAllExpenses() async {
+    try {
+      debugPrint('ExpenseViewModel: すべての支出を読み込み中...');
+      _expenses = await _databaseService.getExpenses();
+      debugPrint('ExpenseViewModel: ${_expenses.length}件の支出を読み込みました');
+      notifyListeners();
+    } catch (e, stackTrace) {
+      debugPrint('ExpenseViewModel: 支出読み込み中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      _expenses = [];
+      notifyListeners();
+    }
   }
   // 支出の追加
   Future<void> addExpense(Expense expense) async {
@@ -117,12 +131,31 @@ class ExpenseViewModel extends ChangeNotifier {
     for (var expense in _expenses) {
       final month = '${expense.date.year}-${expense.date.month}';
       monthlyExpenses[month] = (monthlyExpenses[month] ?? 0) + expense.amount;
-    }
-    // 平均を計算
+    }    // 平均を計算
     double total = monthlyExpenses.values.fold(
       0.0,
       (sum, amount) => sum + amount,
     );
     return monthlyExpenses.isEmpty ? 0 : total / monthlyExpenses.length;
+  }
+  /// 複数の支出を一括追加（CSVインポート用）
+  Future<void> addExpensesBatch(List<Expense> expenses) async {
+    try {
+      debugPrint('ExpenseViewModel: ${expenses.length}件の支出を一括追加中...');
+      
+      for (int i = 0; i < expenses.length; i++) {
+        final expense = expenses[i];
+        debugPrint('ExpenseViewModel: ${i + 1}/${expenses.length} - ${expense.amount}円, ${expense.note}');
+        await _databaseService.insertExpense(expense);
+      }
+      
+      debugPrint('ExpenseViewModel: 一括追加完了');
+      await loadExpenses(); // データを再読み込み
+      debugPrint('ExpenseViewModel: データ再読み込み完了、現在の支出件数: ${_expenses.length}');
+    } catch (e, stackTrace) {
+      debugPrint('ExpenseViewModel: 一括追加中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      throw Exception('支出の一括追加に失敗しました: $e');
+    }
   }
 }

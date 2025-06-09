@@ -56,13 +56,11 @@ class NisaForecastChart extends StatelessWidget {
                   ),
                 ),
               ],
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
+              titlesData: FlTitlesData(                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(                    showTitles: true,
                     getTitlesWidget: (value, meta) {
                       return SideTitleWidget(
-                        axisSide: meta.axisSide,
+                        meta: meta,
                         child: Text(
                           _formatCurrency(value),
                           style: const TextStyle(fontSize: 10),
@@ -77,9 +75,8 @@ class NisaForecastChart extends StatelessWidget {
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
                       // 6ヶ月ごとに表示
-                      if (value % 6 == 0 && value < forecastMonths) {
-                        return SideTitleWidget(
-                          axisSide: meta.axisSide,
+                      if (value % 6 == 0 && value < forecastMonths) {                        return SideTitleWidget(
+                          meta: meta,
                           child: Text(
                             '${(value / 12).toStringAsFixed(1)}年',
                             style: const TextStyle(fontSize: 10),

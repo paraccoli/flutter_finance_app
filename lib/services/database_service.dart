@@ -200,9 +200,8 @@ class DatabaseService {
       
       // 日付形式の問題に対応するため、様々なフォーマットを試す
       final startStr = start.toIso8601String();
-      final endStr = end.toIso8601String();
-      final startDate = startStr.split('T')[0];
-      final endDate = endStr.split('T')[0] + 'T23:59:59.999Z';
+      final endStr = end.toIso8601String();      final startDate = startStr.split('T')[0];
+      final endDate = '${endStr.split('T')[0]}T23:59:59.999Z';
       
       debugPrint('SQL検索用日付: $startDate から $endDate');
       
@@ -318,9 +317,8 @@ class DatabaseService {
       
       // 日付形式の問題に対応するため、様々なフォーマットを試す
       final startStr = start.toIso8601String();
-      final endStr = end.toIso8601String();
-      final startDate = startStr.split('T')[0];
-      final endDate = endStr.split('T')[0] + 'T23:59:59.999Z';
+      final endStr = end.toIso8601String();      final startDate = startStr.split('T')[0];
+      final endDate = '${endStr.split('T')[0]}T23:59:59.999Z';
       
       debugPrint('収入SQL検索用日付: $startDate から $endDate');
       

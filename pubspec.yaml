@@ -1,5 +1,5 @@
-name: money_g
-description: "Money:G - 個人財務管理アプリ"
+name: flutter_finance_app
+description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+2
+version: 1.2.0+1
 
 environment:
   sdk: ^3.8.1
@@ -36,32 +36,44 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # グラフ表示のためのパッケージ
-  fl_chart: ^0.66.2
-    # データベース操作のためのパッケージ
+  fl_chart: ^1.0.0
+  
+  # データベース操作のためのパッケージ
   sqflite: ^2.3.2
   sqflite_common_ffi: ^2.3.2  # Windows/Linux/macOS対応
   path_provider: ^2.1.2
-  path: ^1.8.3
     # 状態管理
   provider: ^6.1.2
+  
   # 設定保存
   shared_preferences: ^2.2.2
-    # 通知機能
-  flutter_local_notifications: ^17.2.2
-  timezone: ^0.9.4
-  
-  # URL起動（SNSリンク用）
-  url_launcher: ^6.2.4
-    # アプリ情報取得
-  package_info_plus: ^8.3.0
-  
-  # CSVエクスポート
-  csv: ^6.0.0
-  share_plus: ^7.2.2
   
   # 日付処理
-  intl: ^0.19.0  # UIコンポーネント
+  intl: ^0.20.2
+    # UIコンポーネント
   google_fonts: ^6.2.0
+    # iOS風のUIコンポーネント
+  modal_bottom_sheet: ^3.0.0
+  
+  # CSV処理
+  csv: ^6.0.0
+  
+  # ファイル選択
+  file_picker: ^10.1.9
+    # パス操作
+  path: ^1.9.0
+  
+  # URL Launcher
+  url_launcher: ^6.2.1
+    # パッケージ情報
+  package_info_plus: ^8.3.0
+  
+  # 共有機能
+  share_plus: ^11.0.0
+  
+  # 通知機能
+  flutter_local_notifications: ^19.2.1
+  timezone: ^0.10.1
 
 dev_dependencies:
   flutter_test:
@@ -72,10 +84,10 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   
   # アプリアイコン生成
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

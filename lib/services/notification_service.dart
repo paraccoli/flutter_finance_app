@@ -134,17 +134,14 @@ class NotificationService {
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidNotificationDetails,
       iOS: iOSNotificationDetails,
-    );
-
-    await _flutterLocalNotificationsPlugin.zonedSchedule(
+    );    await _flutterLocalNotificationsPlugin.zonedSchedule(
       0,
       'Money:G 家計簿リマインダー',
       '今日の収支は記録しましたか？💰\n忘れずに記録して家計管理を続けましょう！',
       tz.TZDateTime.from(scheduledDate, tz.local),
       notificationDetails,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
