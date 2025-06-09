@@ -31,10 +31,9 @@ class ExpenseBarChart extends StatelessWidget {
                 child: BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
-                    maxY: _getMaxValue() * 1.2,
-                    barTouchData: BarTouchData(
+                    maxY: _getMaxValue() * 1.2,                    barTouchData: BarTouchData(
                       touchTooltipData: BarTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey,
+                        getTooltipColor: (group) => Colors.blueGrey,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           final date = _getSortedDates()[groupIndex];
                           final value = dailyTotals[date];

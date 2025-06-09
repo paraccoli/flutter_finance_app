@@ -170,9 +170,8 @@ class IncomeScreen extends StatelessWidget {
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
                     maxY: _getMaxMonthlyValue(monthlyTotals) * 1.2,
-                    barTouchData: BarTouchData(
-                      touchTooltipData: BarTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey,
+                    barTouchData: BarTouchData(                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (group) => Colors.blueGrey,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           final date = sortedMonths[groupIndex];
                           final value = monthlyTotals[date];
@@ -377,53 +376,68 @@ class IncomeScreen extends StatelessWidget {
           child: Center(child: Text('データがありません')),
         ),
       );
-    }
-
-    return ListView.builder(
+    }    return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: incomes.length,
       itemBuilder: (context, index) {
         final income = incomes[index];
         return Card(
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: _getCategoryColor(income.category),
-              child: Icon(
-                _getCategoryIcon(income.category),
+          child: Dismissible(
+            key: Key('income_${income.id}'),
+            background: Container(
+              color: Colors.blue,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.only(left: 20),
+              child: const Icon(
+                Icons.edit,
                 color: Colors.white,
+                size: 30,
               ),
             ),
-            title: Text(
-              '¥${NumberFormat('#,###').format(income.amount)}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.green,
+            secondaryBackground: Container(
+              color: Colors.red,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: const Icon(
+                Icons.delete,
+                color: Colors.white,
+                size: 30,
               ),
             ),
-            subtitle: Text(
-              '${income.category} - ${DateFormat('yyyy/MM/dd').format(income.date)}',
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () =>
-                      _showEditIncomeDialog(context, viewModel, income),
+            confirmDismiss: (direction) async {
+              if (direction == DismissDirection.startToEnd) {
+                // 左から右にスワイプ = 編集
+                _showEditIncomeDialog(context, viewModel, income);
+                return false; // アイテムを削除しない
+              } else if (direction == DismissDirection.endToStart) {
+                // 右から左にスワイプ = 削除確認
+                return await _showDeleteConfirmationDialog(context, viewModel, income);
+              }
+              return false;
+            },
+            child: ListTile(
+              leading: CircleAvatar(
+                backgroundColor: _getCategoryColor(income.category),
+                child: Icon(
+                  _getCategoryIcon(income.category),
+                  color: Colors.white,
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () =>
-                      _showDeleteConfirmationDialog(context, viewModel, income),
+              ),
+              title: Text(
+                '¥${NumberFormat('#,###').format(income.amount)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
                 ),
-              ],
+              ),              subtitle: Text(
+                '${income.category} - ${DateFormat('yyyy/MM/dd').format(income.date)}',
+              ),
             ),
           ),
         );
       },
     );  }
-
   void _showEditIncomeDialog(
     BuildContext context,
     IncomeViewModel viewModel,
@@ -434,11 +448,13 @@ class IncomeScreen extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('収入を編集'),
-          content: SingleChildScrollView(
-            child: IncomeForm(
+          content: SingleChildScrollView(            child: IncomeForm(
               income: income,
-              onSave: (updatedIncome) {
-                viewModel.updateIncome(updatedIncome);
+              onSave: (updatedIncome) async {
+                await viewModel.updateIncome(updatedIncome);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),
@@ -446,13 +462,12 @@ class IncomeScreen extends StatelessWidget {
       },
     );
   }
-
-  void _showDeleteConfirmationDialog(
+  Future<bool?> _showDeleteConfirmationDialog(
     BuildContext context,
     IncomeViewModel viewModel,
     Income income,
-  ) {
-    showDialog(
+  ) async {
+    return await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -461,13 +476,13 @@ class IncomeScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, false);
               },
               child: const Text('キャンセル'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pop(context, true);
                 if (income.id != null) {
                   viewModel.deleteIncome(income.id!);
                 }

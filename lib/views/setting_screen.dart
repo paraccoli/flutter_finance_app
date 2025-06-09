@@ -10,6 +10,7 @@ import '../services/database_service.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
 import 'expense_search_screen.dart';
+import 'csv_import_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -242,13 +243,20 @@ class _SettingScreenState extends State<SettingScreen> {
             const SizedBox(height: 16),            _buildCard(
               isDark,
               Column(
-                children: [
-                  ListTile(
+                children: [                  ListTile(
                     leading: const Icon(Icons.search),
                     title: const Text('支出・収入の検索'),
                     subtitle: const Text('条件を指定してデータを検索'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => _navigateToExpenseSearch(),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.file_upload),
+                    title: const Text('CSVインポート'),
+                    subtitle: const Text('クレジットカード明細をインポート'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => _navigateToCSVImport(),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -1168,12 +1176,19 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
-
   // データ管理  // 支出検索画面への遷移
   void _navigateToExpenseSearch() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const ExpenseSearchScreen()),
+    );
+  }
+
+  // CSVインポート画面への遷移
+  void _navigateToCSVImport() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const CSVImportScreen()),
     );
   }
 

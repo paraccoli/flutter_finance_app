@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../viewmodels/expense_viewmodel.dart';
-import '../viewmodels/income_viewmodel.dart';
 import '../viewmodels/theme_viewmodel.dart';
+import '../services/database_service.dart';
+import '../models/expense.dart';
+import '../models/income.dart';
 
 class MonthlyReportScreen extends StatefulWidget {
   const MonthlyReportScreen({super.key});
@@ -15,58 +16,107 @@ class MonthlyReportScreen extends StatefulWidget {
 
 class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
   DateTime _selectedMonth = DateTime.now();
+  final DatabaseService _databaseService = DatabaseService();
+  List<Expense> _monthlyExpenses = [];
+  List<Income> _monthlyIncomes = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeWithDataMonth();
+  }
+  /// データが存在する月を検出して初期表示
+  Future<void> _initializeWithDataMonth() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // 全支出データの最初の日付を取得
+      final allExpenses = await _databaseService.getExpenses();
+      if (allExpenses.isNotEmpty) {
+        // 最初のデータがある月に設定
+        final firstDate = allExpenses.first.date;
+        _selectedMonth = DateTime(firstDate.year, firstDate.month);
+        debugPrint('月別レポート: データが見つかった月に移動 - ${DateFormat('yyyy年MM月').format(_selectedMonth)}');
+      }
+    } catch (e) {
+      debugPrint('月別レポート: 初期化エラー: $e');
+    }
+    
+    await _loadMonthlyData();
+  }
+
+  /// 指定月のデータを読み込み
+  Future<void> _loadMonthlyData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // 月の開始日と終了日を計算
+      final startDate = DateTime(_selectedMonth.year, _selectedMonth.month, 1);
+      final endDate = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0, 23, 59, 59);
+
+      debugPrint('月別レポート: データ読み込み中 - $startDate から $endDate');
+
+      // データベースから直接データを取得
+      _monthlyExpenses = await _databaseService.getExpensesByDateRange(startDate, endDate);
+      _monthlyIncomes = await _databaseService.getIncomesByDateRange(startDate, endDate);
+
+      debugPrint('月別レポート: 支出${_monthlyExpenses.length}件、収入${_monthlyIncomes.length}件を読み込み');
+    } catch (e) {
+      debugPrint('月別レポート: データ読み込みエラー: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final expenseViewModel = Provider.of<ExpenseViewModel>(context);
-    final incomeViewModel = Provider.of<IncomeViewModel>(context);
     final themeViewModel = Provider.of<ThemeViewModel>(context);
     final isDark = themeViewModel.isDarkMode;
 
-    // 選択された月のデータを取得
-    final monthlyIncomes = _getMonthlyIncomes(incomeViewModel);
-    final monthlyExpenses = _getMonthlyExpenses(expenseViewModel);
+    // 月別データを集計
+    final monthlyIncomes = _getMonthlyIncomes();
+    final monthlyExpenses = _getMonthlyExpenses();
     final totalIncome = monthlyIncomes.values.fold<double>(0, (sum, amount) => sum + amount);
     final totalExpense = monthlyExpenses.values.fold<double>(0, (sum, amount) => sum + amount);
-    final balance = totalIncome - totalExpense;
-
-    return Scaffold(
+    final balance = totalIncome - totalExpense;    return Scaffold(
       appBar: AppBar(
         title: const Text('月次収支レポート'),
         backgroundColor: isDark ? Colors.grey[900] : Colors.white,
         foregroundColor: isDark ? Colors.white : Colors.black,
         elevation: 0,
-      ),      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 月選択
-              _buildMonthSelector(isDark),
-            const SizedBox(height: 20),
+      ),
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 月選択
+                    _buildMonthSelector(isDark),
+                    const SizedBox(height: 20),
 
-            // 収支サマリー
-            _buildSummaryCard(totalIncome, totalExpense, balance, isDark),
+                    // 収支サマリー
+                    _buildSummaryCard(totalIncome, totalExpense, balance, isDark),
             const SizedBox(height: 20),
 
             // 収支グラフ
             _buildBalanceChart(monthlyIncomes, monthlyExpenses, isDark),
-            const SizedBox(height: 20),
-
-            // カテゴリ別収入グラフ
-            if (monthlyIncomes.isNotEmpty) ...[
-              _buildSectionTitle('カテゴリ別収入', isDark),
+            const SizedBox(height: 20),            // カテゴリ別収支比較グラフ
+            if (monthlyIncomes.isNotEmpty || monthlyExpenses.isNotEmpty) ...[
+              _buildSectionTitle('カテゴリ別収支比較', isDark),
               const SizedBox(height: 10),
-              _buildCategoryPieChart(monthlyIncomes, isDark, true),
+              _buildCategoryBarChart(monthlyIncomes, monthlyExpenses, isDark),
               const SizedBox(height: 20),
             ],
-
-            // カテゴリ別支出グラフ
-            if (monthlyExpenses.isNotEmpty) ...[
-              _buildSectionTitle('カテゴリ別支出', isDark),
-              const SizedBox(height: 10),
-              _buildCategoryPieChart(monthlyExpenses, isDark, false),            ],
           ],
         ),
         ),
@@ -80,12 +130,12 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         padding: const EdgeInsets.all(16),
         child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
+        children: [          IconButton(
             onPressed: () {
               setState(() {
                 _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
               });
+              _loadMonthlyData(); // 新しい月のデータを読み込み
             },
             icon: Icon(
               Icons.chevron_left,
@@ -99,12 +149,13 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black,
             ),
-          ),
-          IconButton(
+          ),          IconButton(
             onPressed: () {
               setState(() {
                 _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
-              });            },
+              });
+              _loadMonthlyData(); // 新しい月のデータを読み込み
+            },
             icon: Icon(
               Icons.chevron_right,
               color: isDark ? Colors.white : Colors.black,
@@ -273,19 +324,80 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         ],
       ),
     );
-  }
-  Widget _buildCategoryPieChart(Map<String, double> categoryData, bool isDark, bool isIncome) {
+  }  Widget _buildCategoryBarChart(Map<String, double> incomeData, Map<String, double> expenseData, bool isDark) {
+    // すべてのカテゴリを取得
+    final allCategories = <String>{...incomeData.keys, ...expenseData.keys}.toList();
+    
     return Card(
       margin: const EdgeInsets.all(16),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: SizedBox(
-          height: 200,
-          child: PieChart(
-            PieChartData(
-              sections: _createPieChartSections(categoryData, isIncome),
-              centerSpaceRadius: 40,
-              sectionsSpace: 2,
+          height: 300,
+          child: BarChart(
+            BarChartData(
+              alignment: BarChartAlignment.spaceAround,
+              maxY: _getMaxValue(incomeData, expenseData),
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (group) => isDark ? Colors.grey[800]! : Colors.grey[200]!,
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final category = allCategories[group.x.toInt()];
+                    final isIncome = rodIndex == 0;
+                    final value = rod.toY;
+                    return BarTooltipItem(
+                      '${isIncome ? "収入" : "支出"}\n$category\n¥${NumberFormat('#,###').format(value)}',
+                      TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
+                ),
+              ),
+              titlesData: FlTitlesData(
+                show: true,
+                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      final index = value.toInt();
+                      if (index >= 0 && index < allCategories.length) {
+                        return SideTitleWidget(
+                          meta: meta,
+                          child: Text(
+                            allCategories[index],
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                              fontSize: 10,
+                            ),
+                          ),
+                        );
+                      }
+                      return const Text('');
+                    },
+                  ),
+                ),                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      return SideTitleWidget(
+                        meta: meta,
+                        child: Text(
+                          '¥${NumberFormat.compact().format(value)}',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontSize: 10,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              borderData: FlBorderData(show: false),
+              barGroups: _createBarGroups(allCategories, incomeData, expenseData),
             ),
           ),
         ),
@@ -293,34 +405,37 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
     );
   }
 
-  List<PieChartSectionData> _createPieChartSections(Map<String, double> data, bool isIncome) {
-    final colors = isIncome 
-        ? [Colors.green, Colors.lightGreen, Colors.teal, Colors.cyan]
-        : [Colors.red, Colors.orange, Colors.pink, Colors.purple, Colors.indigo, Colors.blue];
-    
-    final total = data.values.fold<double>(0, (sum, value) => sum + value);
-    final sections = <PieChartSectionData>[];
-    
-    int index = 0;
-    data.forEach((category, amount) {
-      final percentage = (amount / total) * 100;
-      sections.add(
-        PieChartSectionData(
-          color: colors[index % colors.length],
-          value: amount,
-          title: '${percentage.toStringAsFixed(1)}%',
-          radius: 80,
-          titleStyle: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+  List<BarChartGroupData> _createBarGroups(List<String> categories, Map<String, double> incomeData, Map<String, double> expenseData) {
+    return List.generate(categories.length, (index) {
+      final category = categories[index];
+      final incomeAmount = incomeData[category] ?? 0;
+      final expenseAmount = expenseData[category] ?? 0;
+
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: incomeAmount,
+            color: Colors.green,
+            width: 15,
+            borderRadius: BorderRadius.circular(4),
           ),
-        ),
+          BarChartRodData(
+            toY: expenseAmount,
+            color: Colors.red,
+            width: 15,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ],
       );
-      index++;
     });
-    
-    return sections;
+  }
+
+  double _getMaxValue(Map<String, double> incomeData, Map<String, double> expenseData) {
+    final maxIncome = incomeData.values.isEmpty ? 0.0 : incomeData.values.reduce((a, b) => a > b ? a : b);
+    final maxExpense = expenseData.values.isEmpty ? 0.0 : expenseData.values.reduce((a, b) => a > b ? a : b);
+    final maxValue = maxIncome > maxExpense ? maxIncome : maxExpense;
+    return maxValue * 1.2; // 余白を追加
   }
 
   Widget _buildSectionTitle(String title, bool isDark) {
@@ -331,34 +446,25 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
         fontWeight: FontWeight.bold,
         color: isDark ? Colors.white : Colors.black,
       ),
-    );
-  }
+    );  }
 
-  Map<String, double> _getMonthlyIncomes(IncomeViewModel viewModel) {
-    final incomes = viewModel.incomes;
+  Map<String, double> _getMonthlyIncomes() {
     final monthlyData = <String, double>{};
 
-    for (final income in incomes) {
-      if (income.date.year == _selectedMonth.year && 
-          income.date.month == _selectedMonth.month) {
-        final category = income.category.toString().split('.').last;
-        monthlyData[category] = (monthlyData[category] ?? 0) + income.amount;
-      }
+    for (final income in _monthlyIncomes) {
+      final category = income.category.toString().split('.').last;
+      monthlyData[category] = (monthlyData[category] ?? 0) + income.amount;
     }
 
     return monthlyData;
   }
 
-  Map<String, double> _getMonthlyExpenses(ExpenseViewModel viewModel) {
-    final expenses = viewModel.expenses;
+  Map<String, double> _getMonthlyExpenses() {
     final monthlyData = <String, double>{};
 
-    for (final expense in expenses) {
-      if (expense.date.year == _selectedMonth.year && 
-          expense.date.month == _selectedMonth.month) {
-        final category = expense.category.toString().split('.').last;
-        monthlyData[category] = (monthlyData[category] ?? 0) + expense.amount;
-      }
+    for (final expense in _monthlyExpenses) {
+      final category = expense.category.toString().split('.').last;
+      monthlyData[category] = (monthlyData[category] ?? 0) + expense.amount;
     }
 
     return monthlyData;

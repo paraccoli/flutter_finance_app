@@ -143,23 +143,56 @@ class _IncomeFormState extends State<IncomeForm> {
             },
           ),
           const SizedBox(height: 24),
-          
-          // 保存ボタン
+            // 保存ボタン
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-                
-                final income = Income(
-                  id: widget.income?.id,
-                  amount: _amount,
-                  date: _date,
-                  category: _category,
-                  note: _note,
-                );
-                
-                widget.onSave(income);
-                Navigator.pop(context);
+                try {
+                  _formKey.currentState!.save();
+                  
+                  final income = Income(
+                    id: widget.income?.id,
+                    amount: _amount,
+                    date: _date,
+                    category: _category,
+                    note: _note,
+                  );
+                  
+                  // ローディング表示
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );                  await widget.onSave(income);
+                  
+                  // 親画面がダイアログを閉じるため、ここではローディングのみ終了
+                  if (context.mounted) {
+                    Navigator.pop(context); // ローディング終了のみ
+                  }
+                } catch (e) {
+                  debugPrint('IncomeForm: 保存中にエラーが発生しました: $e');
+                  
+                  if (context.mounted) {
+                    Navigator.pop(context); // ローディング終了
+                    
+                    // エラーダイアログを表示
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('エラー'),
+                        content: Text('保存中にエラーが発生しました。\n再度お試しください。\n\nエラー詳細: $e'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                }
               }
             },
             child: const Text('保存'),

@@ -42,9 +42,8 @@ class NisaPerformanceChart extends StatelessWidget {
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      return SideTitleWidget(
-                        axisSide: meta.axisSide,
+                    getTitlesWidget: (value, meta) {                      return SideTitleWidget(
+                        meta: meta,
                         child: Text('${value.toStringAsFixed(1)}%'),
                       );
                     },
@@ -55,9 +54,8 @@ class NisaPerformanceChart extends StatelessWidget {
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) {
-                      if (value >= 0 && value < sortedInvestments.length) {
-                        return SideTitleWidget(
-                          axisSide: meta.axisSide,
+                      if (value >= 0 && value < sortedInvestments.length) {                        return SideTitleWidget(
+                          meta: meta,
                           child: Text(
                             sortedInvestments[value.toInt()].ticker,
                             style: const TextStyle(

@@ -84,11 +84,28 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget? _buildFloatingActionButtons() {
     if (_currentIndex != 0 && _currentIndex != 1) {
       return null; // 支出・収入画面以外では表示しない
-    }
-
-    return Column(
+    }    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // すべて表示ボタン（支出画面のみ）
+        if (_currentIndex == 0)
+          FloatingActionButton(
+            heroTag: "show_all_fab",
+            onPressed: () {
+              final expenseViewModel = Provider.of<ExpenseViewModel>(context, listen: false);
+              expenseViewModel.loadAllExpenses();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('すべての支出を表示しています'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+            },
+            tooltip: 'すべて表示',
+            backgroundColor: Colors.orange,
+            child: const Icon(Icons.view_list),
+          ),
+        if (_currentIndex == 0) const SizedBox(height: 16),
         // 検索ボタン
         FloatingActionButton(
           heroTag: "search_fab",
@@ -122,8 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     );
-  }
-  void _showAddExpenseDialog() {
+  }  void _showAddExpenseDialog() {
     final expenseViewModel =
         Provider.of<ExpenseViewModel>(context, listen: false);
     showDialog(
@@ -133,18 +149,18 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('支出を追加'),
           content: SingleChildScrollView(
             child: ExpenseForm(
-              onSave: (expense) {
-                expenseViewModel.addExpense(expense);
-                Navigator.of(context).pop();
+              onSave: (expense) async {
+                await expenseViewModel.addExpense(expense);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),
         );
       },
     );
-  }
-
-  void _showAddIncomeDialog() {
+  }  void _showAddIncomeDialog() {
     final incomeViewModel =
         Provider.of<IncomeViewModel>(context, listen: false);
     showDialog(
@@ -154,9 +170,11 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text('収入を追加'),
           content: SingleChildScrollView(
             child: IncomeForm(
-              onSave: (income) {
-                incomeViewModel.addIncome(income);
-                Navigator.of(context).pop();
+              onSave: (income) async {
+                await incomeViewModel.addIncome(income);
+                if (context.mounted) {
+                  Navigator.pop(context); // ダイアログを閉じる
+                }
               },
             ),
           ),

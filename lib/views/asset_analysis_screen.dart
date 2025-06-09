@@ -187,9 +187,8 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
                 child: BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
-                    barTouchData: BarTouchData(
-                      touchTooltipData: BarTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey,
+                    barTouchData: BarTouchData(                      touchTooltipData: BarTouchTooltipData(
+                        getTooltipColor: (group) => Colors.blueGrey,
                         getTooltipItem: (group, groupIndex, rod, rodIndex) {
                           final date = sortedMonths[groupIndex];
                           final value = monthlyBalances[date];
@@ -327,8 +326,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
             ),
           ),
           const SizedBox(height: 16),
-          
-          // 資産推移グラフ
+            // 資産推移グラフ
           AspectRatio(
             aspectRatio: 1.5,
             child: Card(
@@ -339,7 +337,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
                   LineChartData(
                     lineTouchData: LineTouchData(
                       touchTooltipData: LineTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey,
+                        getTooltipColor: (touchedSpot) => Colors.blueGrey,
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             final forecast = forecasts[spot.x.toInt()];
@@ -534,8 +532,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
             ),
           ),
           const SizedBox(height: 16),
-          
-          // NISA資産推移グラフ
+            // NISA資産推移グラフ
           AspectRatio(
             aspectRatio: 1.5,
             child: Card(
@@ -546,7 +543,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
                   LineChartData(
                     lineTouchData: LineTouchData(
                       touchTooltipData: LineTouchTooltipData(
-                        tooltipBgColor: Colors.blueGrey,
+                        getTooltipColor: (touchedSpot) => Colors.blueGrey,
                         getTooltipItems: (touchedSpots) {
                           return touchedSpots.map((spot) {
                             final forecast = forecasts[spot.x.toInt()];
@@ -612,7 +609,7 @@ class _AssetAnalysisScreenState extends State<AssetAnalysisScreen> with SingleTi
                         barWidth: 3,
                         belowBarData: BarAreaData(
                           show: true,
-                          color: Colors.purple.withOpacity(0.2),
+                          color: Colors.purple.withValues(alpha: 0.2),
                         ),
                         dotData: const FlDotData(show: false),
                       ),

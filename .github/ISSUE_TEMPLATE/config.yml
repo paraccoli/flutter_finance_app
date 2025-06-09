@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 ディスカッション
+    url: https://github.com/paraccoli/flutter_finance_app/discussions
+    about: 一般的な質問や機能についての議論はこちら
+  - name: 📖 ヘルプ・FAQ
+    url: https://github.com/paraccoli/flutter_finance_app/wiki
+    about: よくある質問と使い方ガイド
+  - name: 🐦 開発者Twitter
+    url: https://twitter.com/paraccoli
+    about: 開発者への直接連絡
