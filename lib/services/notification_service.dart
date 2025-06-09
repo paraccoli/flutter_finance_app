@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -82,11 +83,12 @@ class NotificationService {
 
     return grantedAndroid ?? grantedIOS ?? false;
   }
-
   /// 通知応答の処理
   void _onDidReceiveNotificationResponse(NotificationResponse response) {
     // 通知がタップされた時の処理
-    print('通知がタップされました: ${response.payload}');
+    if (kDebugMode) {
+      debugPrint('通知がタップされました: ${response.payload}');
+    }
   }
 
   /// 毎日のリマインダー通知をスケジュール

@@ -1,7 +1,7 @@
 // This is a basic Flutter widget test.
 
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/main.dart';
+import 'package:flutter_finance_app/main.dart';
 
 void main() {
   testWidgets('App launches successfully', (WidgetTester tester) async {

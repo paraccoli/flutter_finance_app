@@ -471,13 +471,11 @@ class _CSVImportScreenState extends State<CSVImportScreen> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-    });    try {
-      // データを変換
-      final expenses = await _csvImportService.convertToExpenses(_importResult!, _selectedFormat!);
-      
-      // 重複チェック（非同期処理前にcontextを取得）
+    });    try {      // データを変換（非同期処理前にcontextから必要な値を取得）
       final messenger = ScaffoldMessenger.of(context);
       final expenseViewModel = Provider.of<ExpenseViewModel>(context, listen: false);
+      
+      final expenses = await _csvImportService.convertToExpenses(_importResult!, _selectedFormat!);
       
       final existingExpenses = expenseViewModel.expenses;
       final duplicates = await _csvImportService.checkDuplicates(expenses, existingExpenses);
@@ -512,18 +510,21 @@ class _CSVImportScreenState extends State<CSVImportScreen> {
 
   /// データをインポート
   Future<void> _importData() async {
-    if (_convertedExpenses == null) return;
-
-    setState(() {
+    if (_convertedExpenses == null) return;    setState(() {
       _isLoading = true;
       _errorMessage = null;
-    });    try {
+    });
+
+    try {
+      // 非同期処理前にcontextから必要な値を取得
       final expenseViewModel = Provider.of<ExpenseViewModel>(context, listen: false);
+      final messenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
       
       // 重複データを除外
       final uniqueExpenses = _convertedExpenses!.where((expense) {
         return _duplicateExpenses?.any((dup) => 
-          dup.date == expense.date && 
+          dup.date == expense.date &&
           dup.amount == expense.amount && 
           dup.note == expense.note) != true;
       }).toList();
@@ -543,27 +544,25 @@ class _CSVImportScreenState extends State<CSVImportScreen> {
           
           debugPrint('CSV Import: 日付範囲を更新 - $earliestDate から $latestDate');
           expenseViewModel.setDateRange(earliestDate, latestDate);
-          
-          // 完了メッセージ
+            // 完了メッセージ
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+            messenger.showSnackBar(
               SnackBar(
                 content: Text('${uniqueExpenses.length}件のデータをインポートしました'),
                 backgroundColor: Colors.green,
               ),
             );
             
-            Navigator.pop(context, uniqueExpenses.length);
+            navigator.pop(uniqueExpenses.length);
           }
         } catch (e) {
           debugPrint('CSV Import: 一括保存エラー = $e');
           setState(() {
             _errorMessage = 'データの保存に失敗しました: $e';
           });
-        }
-      } else {
+        }      } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
             const SnackBar(
               content: Text('インポートするデータがありません'),
               backgroundColor: Colors.orange,

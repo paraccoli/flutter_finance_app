@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' show Platform;
@@ -20,27 +21,37 @@ void main() async {
     // デスクトッププラットフォーム用の初期化（Windows/Linux/macOS）
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
-  }
-  // データベースの初期化を確認
+  }  // データベースの初期化を確認
   try {
     final db = await DatabaseService().database;
-    print('データベース初期化成功: ${db.path}');
+    // デバッグビルドでのみログ出力
+    if (kDebugMode) {
+      debugPrint('データベース初期化成功: ${db.path}');
+    }
 
     // テーブルが存在するか確認
     final tables = await db.rawQuery(
       "SELECT name FROM sqlite_master WHERE type='table'",
     );
-    print('テーブル一覧: $tables');
+    if (kDebugMode) {
+      debugPrint('テーブル一覧: $tables');
+    }
   } catch (e) {
-    print('データベース初期化エラー: $e');
+    if (kDebugMode) {
+      debugPrint('データベース初期化エラー: $e');
+    }
   }
 
   // 通知サービスの初期化
   try {
     await NotificationService().initialize();
-    print('通知サービス初期化成功');
+    if (kDebugMode) {
+      debugPrint('通知サービス初期化成功');
+    }
   } catch (e) {
-    print('通知サービス初期化エラー: $e');
+    if (kDebugMode) {
+      debugPrint('通知サービス初期化エラー: $e');
+    }
   }
 
   runApp(const MyApp());

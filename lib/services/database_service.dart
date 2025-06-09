@@ -81,9 +81,7 @@ class DatabaseService {
             id, name, '', initialAmount, currentValue, 
             lastUpdated, monthlyContribution, contributionDay, lastUpdated
           FROM nisa_investments
-        ''');
-
-        // 古いテーブルを削除
+        ''');        // 古いテーブルを削除
         await db.execute('DROP TABLE nisa_investments');
 
         // 新テーブルをリネーム
@@ -91,7 +89,9 @@ class DatabaseService {
           'ALTER TABLE nisa_investments_backup RENAME TO nisa_investments',
         );
       } catch (e) {
-        print('マイグレーションエラー: $e');
+        if (kDebugMode) {
+          debugPrint('マイグレーションエラー: $e');
+        }
         // エラーが発生した場合は、新しいテーブルを作成
         await db.execute('DROP TABLE IF EXISTS nisa_investments');
         await db.execute('''

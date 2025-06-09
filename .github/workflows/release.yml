@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.0)'
+        required: true
+        default: 'v1.2.0'
 
 jobs:
   build-and-release:
@@ -17,65 +23,126 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.8.1'
+        flutter-version: '3.19.0'
         channel: 'stable'
 
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
 
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: /opt/hostedtoolcache/flutter
+        key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+
     - name: Get dependencies
       run: flutter pub get
+
+    - name: Run analyze
+      run: flutter analyze --no-fatal-infos
 
     - name: Run tests
       run: flutter test
 
     - name: Build Android APK
-      run: flutter build apk --release
+      run: flutter build apk --release --verbose
 
     - name: Build Android App Bundle
-      run: flutter build appbundle --release
+      run: flutter build appbundle --release --verbose
+
+    - name: Get version from tag or input
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+        else
+          echo "version=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+        fi
 
     - name: Create Release Archive
       run: |
         mkdir -p release
-        cp build/app/outputs/flutter-apk/app-release.apk release/MoneyG-Android-${{ github.ref_name }}.apk
-        cp build/app/outputs/bundle/release/app-release.aab release/MoneyG-Android-${{ github.ref_name }}.aab
+        VERSION=${{ steps.version.outputs.version }}
+        cp build/app/outputs/flutter-apk/app-release.apk release/MoneyG-Android-${VERSION}.apk
+        cp build/app/outputs/bundle/release/app-release.aab release/MoneyG-Android-${VERSION}.aab
         cd release
-        zip -r MoneyG-Android-Release-${{ github.ref_name }}.zip *.apk *.aab
-
+        zip -r MoneyG-Android-${VERSION}.zip MoneyG-Android-${VERSION}.apk
+        
+        # ファイルサイズとハッシュを計算
+        echo "## 📁 ファイル情報" > ../release_info.md
+        echo "| ファイル | サイズ | SHA256 |" >> ../release_info.md
+        echo "|----------|--------|---------|" >> ../release_info.md
+        for file in *.apk *.aab *.zip; do
+          if [ -f "$file" ]; then
+            size=$(du -h "$file" | cut -f1)
+            hash=$(sha256sum "$file" | cut -d' ' -f1)
+            echo "| $file | $size | \`$hash\` |" >> ../release_info.md
+          fi
+        done
+        
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         files: |
-          release/MoneyG-Android-${{ github.ref_name }}.apk
-          release/MoneyG-Android-${{ github.ref_name }}.aab
-          release/MoneyG-Android-Release-${{ github.ref_name }}.zip
-        name: 'Money:G ${{ github.ref_name }}'
+          release/MoneyG-Android-${{ steps.version.outputs.version }}.apk
+          release/MoneyG-Android-${{ steps.version.outputs.version }}.aab
+          release/MoneyG-Android-${{ steps.version.outputs.version }}.zip
+        name: 'Money:G ${{ steps.version.outputs.version }}'
         body: |
-          ## 🎉 Money:G ${{ github.ref_name }} リリース
+          ## 🎉 Money:G ${{ steps.version.outputs.version }} リリース
           
-          ### 📱 ダウンロード
-          - **APK**: 直接インストール用
-          - **AAB**: Google Play Store用
-          - **ZIP**: 全ファイル含む圧縮版
+          ### 📱 主な機能
+          - 📊 家計簿管理（収入・支出）
+          - 📈 月次レポート・資産分析
+          - 💾 CSV インポート・エクスポート
+          - 💰 予算管理・NISA管理
+          - 🔍 検索・フィルター機能
+          - ⚡ クイック登録
+          - 🔄 バックアップ・復元
           
-          ### 📋 主な変更点
-          [CHANGELOG.md](CHANGELOG.md)をご確認ください。
+          ### 📋 v1.2.0の新機能
+          - ✨ **CSV インポート機能**: クレジットカード明細等をインポート可能
+          - 🎨 **Material Design統一**: iOSテーマを削除してUIを統一
+          - 🏠 **新しい支出カテゴリ**: 家賃カテゴリを追加
+          - 🐛 **バグ修正**: リリースビルドでの保存後ブラックアウト問題を修正
+          
+          ### 📁 ダウンロード
+          - **APK** (`MoneyG-Android-${{ steps.version.outputs.version }}.apk`): 直接インストール用
+          - **AAB** (`MoneyG-Android-${{ steps.version.outputs.version }}.aab`): Google Play Store用
+          - **ZIP** (`MoneyG-Android-${{ steps.version.outputs.version }}.zip`): APK圧縮版
+          
+          $(cat release_info.md)
           
           ### 📱 インストール方法
-          1. APKファイルをダウンロード
-          2. 端末の設定で「提供元不明のアプリ」を許可
+          1. **APKファイル**をダウンロード
+          2. Android端末の**設定 > セキュリティ**で「提供元不明のアプリ」を許可
           3. APKファイルをタップしてインストール
+          4. 必要に応じて権限を許可
           
           ### 🔒 セキュリティ
-          このリリースは公式のGitHub Actionsでビルドされています。
+          - このリリースは公式GitHub Actionsで自動ビルド
+          - ソースコードは完全にオープンソース
+          - プライバシーポリシー準拠（ローカルデータのみ）
           
           ### 🐛 問題を発見した場合
-          [Issues](https://github.com/paraccoli/flutter_finance_app/issues)でご報告ください。
+          - [Issues](https://github.com/paraccoli/flutter_finance_app/issues)でバグ報告
+          - [Discussions](https://github.com/paraccoli/flutter_finance_app/discussions)で質問・提案
+          
+          ### 📚 ドキュメント
+          - [README.md](README.md): アプリの概要と使い方
+          - [PRIVACY.md](PRIVACY.md): プライバシーポリシー
+          - [LICENSE](LICENSE): MITライセンス
         draft: false
         prerelease: false
+        make_latest: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Update release info
+      if: success()
+      run: |
+        echo "✅ リリース ${{ steps.version.outputs.version }} が正常に作成されました！"
+        echo "🔗 https://github.com/${{ github.repository }}/releases/tag/${{ steps.version.outputs.version }}"

@@ -76,13 +76,12 @@ class NisaPerformanceChart extends StatelessWidget {
                   sideTitles: SideTitles(showTitles: false),
                 ),
               ),
-              borderData: FlBorderData(show: false),
-              gridData: FlGridData(
+              borderData: FlBorderData(show: false),              gridData: FlGridData(
                 horizontalInterval: 5,
                 drawVerticalLine: false,
                 getDrawingHorizontalLine: (value) {
                   return FlLine(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     strokeWidth: 1,
                   );
                 },
