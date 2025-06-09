@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import '../models/expense.dart';
 
@@ -65,49 +66,60 @@ class CSVImportService {
     }
   }  /// CSVファイルをインポート
   Future<CSVImportResult> importCSVFile(File file) async {
-    try {
-      // ファイル名からフォーマットを推定
+    try {      // ファイル名からフォーマットを推定
       final fileName = path.basenameWithoutExtension(file.path).toLowerCase();
-      print('CSV Import: ファイル名 = $fileName');
+      if (kDebugMode) {
+        debugPrint('CSV Import: ファイル名 = $fileName');
+      }
       CSVFormat? detectedFormat = _detectFormat(fileName);
-      print('CSV Import: 検出フォーマット = ${detectedFormat?.name}');
+      if (kDebugMode) {
+        debugPrint('CSV Import: 検出フォーマット = ${detectedFormat?.name}');
+      }
 
       // ファイル内容を読み込み（複数のエンコーディングを試行）
       String content;
       try {
         // まずUTF-8で試行
         content = await file.readAsString(encoding: utf8);
-        print('CSV Import: UTF-8で読み込み成功');
-      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('CSV Import: UTF-8で読み込み成功');
+        }      } catch (e) {
         try {
           // UTF-8で失敗した場合はShift_JISを試行
           final bytes = await file.readAsBytes();
           content = String.fromCharCodes(bytes);
-          print('CSV Import: バイト配列として読み込み成功');
+          if (kDebugMode) {
+            debugPrint('CSV Import: バイト配列として読み込み成功');
+          }
         } catch (e) {
           throw CSVImportException('ファイルのエンコーディングが認識できません');
-        }
-      }
+        }      }
       
-      print('CSV Import: コンテンツの最初の100文字 = ${content.length > 100 ? content.substring(0, 100) : content}');
+      if (kDebugMode) {
+        debugPrint('CSV Import: コンテンツの最初の100文字 = ${content.length > 100 ? content.substring(0, 100) : content}');
+      }
       
       // CSVをパース
       List<List<dynamic>> csvData;
       try {
         csvData = const CsvToListConverter().convert(content);
-        print('CSV Import: CSVパース成功、${csvData.length}行検出');
+        if (kDebugMode) {
+          debugPrint('CSV Import: CSVパース成功、${csvData.length}行検出');
+        }
       } catch (e) {
-        print('CSV Import: CSVパースエラー = $e');
+        if (kDebugMode) {
+          debugPrint('CSV Import: CSVパースエラー = $e');
+        }
         throw CSVImportException('CSVファイルの形式が正しくありません');
       }
       
       if (csvData.isEmpty) {
         throw CSVImportException('CSVファイルが空です');
-      }
-
-      // ヘッダー行をスキップ（通常は最初の行）
+      }      // ヘッダー行をスキップ（通常は最初の行）
       final dataRows = csvData.skip(1).toList();
-      print('CSV Import: データ行数 = ${dataRows.length}');
+      if (kDebugMode) {
+        debugPrint('CSV Import: データ行数 = ${dataRows.length}');
+      }
       
       if (dataRows.isEmpty) {
         throw CSVImportException('データ行が見つかりません');
@@ -115,16 +127,19 @@ class CSVImportService {
       
       // データを解析してプレビューを生成
       final previewData = _generatePreview(dataRows, detectedFormat);
-      print('CSV Import: プレビューデータ生成完了、${previewData.length}行');
+      if (kDebugMode) {
+        debugPrint('CSV Import: プレビューデータ生成完了、${previewData.length}行');
+      }
       
       return CSVImportResult(
         file: file,
         detectedFormat: detectedFormat,
         previewData: previewData,
         totalRows: dataRows.length,
-      );
-    } catch (e) {
-      print('CSV Import: エラー発生 = $e');
+      );    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('CSV Import: エラー発生 = $e');
+      }
       if (e is CSVImportException) {
         rethrow;
       }
@@ -278,7 +293,9 @@ class CSVImportService {
     final expenses = <Expense>[];
     
     try {
-      print('CSV Import: データ変換開始、フォーマット = ${selectedFormat.name}');
+      if (kDebugMode) {
+        debugPrint('CSV Import: データ変換開始、フォーマット = ${selectedFormat.name}');
+      }
       
       // ファイルを再読み込み
       String content;
@@ -291,14 +308,17 @@ class CSVImportService {
       
       final List<List<dynamic>> csvData = const CsvToListConverter().convert(content);
       final dataRows = csvData.skip(1).toList();
-      print('CSV Import: 変換対象行数 = ${dataRows.length}');
-      
-      for (int i = 0; i < dataRows.length; i++) {
+      if (kDebugMode) {
+        debugPrint('CSV Import: 変換対象行数 = ${dataRows.length}');
+      }
+        for (int i = 0; i < dataRows.length; i++) {
         final row = dataRows[i];
         if (row.length <= selectedFormat.descriptionColumn || 
             row.length <= selectedFormat.amountColumn ||
             row.length <= selectedFormat.dateColumn) {
-          print('CSV Import: 行${i + 1}をスキップ（データ不足）');
+          if (kDebugMode) {
+            debugPrint('CSV Import: 行${i + 1}をスキップ（データ不足）');
+          }
           continue;
         }
         
@@ -307,19 +327,24 @@ class CSVImportService {
           final amountStr = row[selectedFormat.amountColumn].toString().trim();
           final descriptionStr = row[selectedFormat.descriptionColumn].toString().trim();
           
-          print('CSV Import: 行${i + 1} - 日付: $dateStr, 金額: $amountStr, 説明: $descriptionStr');
+          if (kDebugMode) {
+            debugPrint('CSV Import: 行${i + 1} - 日付: $dateStr, 金額: $amountStr, 説明: $descriptionStr');
+          }
           
           if (dateStr.isEmpty || amountStr.isEmpty || descriptionStr.isEmpty) {
-            print('CSV Import: 行${i + 1}をスキップ（空データ）');
+            if (kDebugMode) {
+              debugPrint('CSV Import: 行${i + 1}をスキップ（空データ）');
+            }
             continue;
           }
           
           final date = _parseDate(dateStr, selectedFormat.dateFormat);
           final amount = _parseAmount(amountStr);
           
-          print('CSV Import: 行${i + 1} - パース結果 - 日付: $date, 金額: $amount');
-          
-          if (date != null && amount != null && amount > 0) {
+          if (kDebugMode) {
+            debugPrint('CSV Import: 行${i + 1} - パース結果 - 日付: $date, 金額: $amount');
+          }
+            if (date != null && amount != null && amount > 0) {
             final category = _suggestCategory(descriptionStr);
             final expense = Expense(
               amount: amount,
@@ -328,20 +353,30 @@ class CSVImportService {
               note: descriptionStr,
             );
             expenses.add(expense);
-            print('CSV Import: 行${i + 1} - 支出追加成功、カテゴリ: $category');
+            if (kDebugMode) {
+              debugPrint('CSV Import: 行${i + 1} - 支出追加成功、カテゴリ: $category');
+            }
           } else {
-            print('CSV Import: 行${i + 1}をスキップ（パースエラー）');
+            if (kDebugMode) {
+              debugPrint('CSV Import: 行${i + 1}をスキップ（パースエラー）');
+            }
           }
         } catch (e) {
-          print('CSV Import: 行${i + 1}で例外発生: $e');
+          if (kDebugMode) {
+            debugPrint('CSV Import: 行${i + 1}で例外発生: $e');
+          }
           continue;
         }
       }
       
-      print('CSV Import: 変換完了、${expenses.length}件の支出データを生成');
+      if (kDebugMode) {
+        debugPrint('CSV Import: 変換完了、${expenses.length}件の支出データを生成');
+      }
       return expenses;
     } catch (e) {
-      print('CSV Import: データ変換エラー: $e');
+      if (kDebugMode) {
+        debugPrint('CSV Import: データ変換エラー: $e');
+      }
       throw CSVImportException('データ変換中にエラーが発生しました: $e');
     }
   }

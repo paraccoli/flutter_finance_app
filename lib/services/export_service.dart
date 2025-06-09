@@ -45,9 +45,7 @@ class ExportService {
       final directory = await getApplicationDocumentsDirectory();
       final fileName = 'expenses_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
-      await file.writeAsString(csvString, encoding: utf8);
-
-      // ファイルを共有
+      await file.writeAsString(csvString, encoding: utf8);      // ファイルを共有
       await Share.shareXFiles(
         [XFile(file.path)],
         text: '支出データ（CSV形式）',

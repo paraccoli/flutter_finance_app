@@ -46,13 +46,12 @@ class NisaForecastChart extends StatelessWidget {
                   spots: combinedForecast.asMap().entries.map((entry) {
                     return FlSpot(entry.key.toDouble(), entry.value);
                   }).toList(),
-                  isCurved: true,
-                  color: Colors.blue,
+                  isCurved: true,                  color: Colors.blue,
                   barWidth: 3,
                   dotData: FlDotData(show: false),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Colors.blue.withOpacity(0.2),
+                    color: Colors.blue.withValues(alpha: 0.2),
                   ),
                 ),
               ],
@@ -93,20 +92,19 @@ class NisaForecastChart extends StatelessWidget {
                 topTitles: AxisTitles(
                   sideTitles: SideTitles(showTitles: false),
                 ),
-              ),
-              gridData: FlGridData(
+              ),              gridData: FlGridData(
                 drawVerticalLine: true,
                 horizontalInterval: _calculateInterval(combinedForecast),
                 verticalInterval: 12, // 1年ごとに縦線
                 getDrawingHorizontalLine: (value) {
                   return FlLine(
-                    color: Colors.grey.withOpacity(0.3),
+                    color: Colors.grey.withValues(alpha: 0.3),
                     strokeWidth: 1,
                   );
                 },
                 getDrawingVerticalLine: (value) {
                   return FlLine(
-                    color: Colors.grey.withOpacity(0.2),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     strokeWidth: 1,
                     dashArray: [5, 5],
                   );
