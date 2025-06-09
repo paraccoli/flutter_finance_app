@@ -3,6 +3,8 @@ name: Question
 about: 使い方や技術的な質問をする
 title: '[QUESTION] '
 labels: ['question', 'help-wanted']
+title: "[QUESTION] "
+labels: help-wanted, question
 assignees: ''
 
 ---

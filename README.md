@@ -185,7 +185,7 @@ lib/
 
 1. **リポジトリのクローン**
    ```bash
-   git clone https://github.com/paraccoli/flutter_finance_app.git
+   git clone https://github.com/paraccoli/-Money-G-Finance-app.git
    cd flutter_finance_app
    ```
 

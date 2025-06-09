@@ -3,6 +3,9 @@ name: Feature request
 about: 新機能や改善を提案する
 title: '[FEATURE] '
 labels: ['enhancement', 'feature-request']
+about: 機能や改善を提案する
+title: "[FEATURE] "
+labels: enhancement, feature-request
 assignees: ''
 
 ---
