@@ -8,10 +8,14 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Wait for initialization
-    await tester.pumpAndSettle();
-    
     // Verify app launched (any widget exists)
     expect(tester.allWidgets.isNotEmpty, true);
+    
+    // Wait for splash screen with timeout
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    
+    // The app should be showing splash screen initially
+    expect(find.text('Money:G'), findsOneWidget);
   });
 }

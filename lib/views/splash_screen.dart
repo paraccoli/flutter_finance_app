@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'dart:async';
 import 'home_screen.dart';
+import '../services/database_service.dart';
+import '../viewmodels/expense_viewmodel.dart';
+import '../viewmodels/income_viewmodel.dart';
+import '../viewmodels/nisa_viewmodel.dart';
+import '../viewmodels/asset_analysis_viewmodel.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,7 +21,6 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
-
   @override
   void initState() {
     super.initState();
@@ -47,17 +52,81 @@ class _SplashScreenState extends State<SplashScreen>
     // アニメーション開始
     _animationController.forward();
 
-    // 3秒後にホーム画面に遷移
-    Timer(const Duration(seconds: 3), () {
+    // 初期化とホーム画面遷移
+    _initializeAndNavigate();
+
+    if (kDebugMode) {
+      debugPrint('スプラッシュスクリーン初期化完了');
+    }
+  }
+
+  Future<void> _initializeAndNavigate() async {
+    try {
+      // データベース初期化
+      await _initializeDatabase();
+      
+      // プロバイダーのリセット
+      await _resetProviders();
+      
+      // 最低3秒間スプラッシュ画面を表示
+      await Future.delayed(const Duration(seconds: 3));
+      
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );
       }
-    });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('初期化エラー: $e');
+      }
+      
+      // エラーが発生してもホーム画面に遷移
+      await Future.delayed(const Duration(seconds: 3));
+      
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    }
+  }
 
-    if (kDebugMode) {
-      debugPrint('スプラッシュスクリーン初期化完了');
+  Future<void> _initializeDatabase() async {
+    try {
+      final db = await DatabaseService().database;
+      if (kDebugMode) {
+        debugPrint('データベース再初期化完了: ${db.path}');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('データベース初期化エラー: $e');
+      }
+    }
+  }
+
+  Future<void> _resetProviders() async {
+    if (mounted) {
+      try {
+        // プロバイダーのデータをリセット
+        final expenseViewModel = Provider.of<ExpenseViewModel>(context, listen: false);
+        final incomeViewModel = Provider.of<IncomeViewModel>(context, listen: false);
+        final nisaViewModel = Provider.of<NisaViewModel>(context, listen: false);
+        final assetAnalysisViewModel = Provider.of<AssetAnalysisViewModel>(context, listen: false);
+        
+        await expenseViewModel.loadExpenses();
+        await incomeViewModel.loadIncomes();
+        await nisaViewModel.loadInvestments();
+        await assetAnalysisViewModel.loadData();
+        
+        if (kDebugMode) {
+          debugPrint('プロバイダーリセット完了');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('プロバイダーリセットエラー: $e');
+        }
+      }
     }
   }
 
