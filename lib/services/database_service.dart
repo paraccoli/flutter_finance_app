@@ -34,11 +34,10 @@ class DatabaseService {
     
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'finance_app.db');
-    
-    // モバイル/デスクトッププラットフォームで適切なデータベースファクトリを使用
+      // モバイル/デスクトッププラットフォームで適切なデータベースファクトリを使用
     final db = await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -105,8 +104,39 @@ class DatabaseService {
             monthlyContribution REAL NOT NULL,
             contributionDay INTEGER NOT NULL,
             lastUpdated TEXT NOT NULL
+          )        ''');
+      }
+    }
+
+    if (oldVersion < 3) {
+      // 予算管理テーブルを追加
+      try {
+        // 予算設定テーブル
+        await db.execute('''
+          CREATE TABLE budgets(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category INTEGER NOT NULL UNIQUE,
+            amount REAL NOT NULL,
+            month TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
           )
         ''');
+
+        // 月次予算テーブル
+        await db.execute('''
+          CREATE TABLE monthly_budgets(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            amount REAL NOT NULL,
+            month TEXT NOT NULL UNIQUE,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+
+        debugPrint('予算管理テーブルを作成しました');
+      } catch (e) {
+        debugPrint('予算テーブル作成エラー: $e');
       }
     }
   }
@@ -133,7 +163,7 @@ class DatabaseService {
         category INTEGER NOT NULL,
         note TEXT
       )
-    '''); // NISA投資テーブル
+    ''');    // NISA投資テーブル
     await db.execute('''
       CREATE TABLE nisa_investments(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -145,6 +175,29 @@ class DatabaseService {
         monthlyContribution REAL NOT NULL,
         contributionDay INTEGER NOT NULL,
         lastUpdated TEXT NOT NULL
+      )
+    ''');
+
+    // 予算設定テーブル
+    await db.execute('''
+      CREATE TABLE budgets(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        category INTEGER NOT NULL UNIQUE,
+        amount REAL NOT NULL,
+        month TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    // 月次予算テーブル
+    await db.execute('''
+      CREATE TABLE monthly_budgets(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        amount REAL NOT NULL,
+        month TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
       )
     ''');
   }
@@ -704,6 +757,104 @@ class DatabaseService {
     } catch (e) {
       debugPrint('バックアップファイルリストの取得中にエラー: $e');
       return [];
+    }  }
+
+  // 予算管理メソッド
+  // カテゴリ別予算の保存
+  Future<void> saveCategoryBudget(ExpenseCategory category, double amount, String month) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    
+    await db.execute('''
+      INSERT OR REPLACE INTO budgets(category, amount, month, created_at, updated_at)
+      VALUES(?, ?, ?, ?, ?)
+    ''', [category.index, amount, month, now, now]);
+    
+    debugPrint('カテゴリ予算を保存: ${category.name} - $amount円 ($month)');
+  }
+
+  // 月次予算の保存
+  Future<void> saveMonthlyBudget(double amount, String month) async {
+    final db = await database;
+    final now = DateTime.now().toIso8601String();
+    
+    await db.execute('''
+      INSERT OR REPLACE INTO monthly_budgets(amount, month, created_at, updated_at)
+      VALUES(?, ?, ?, ?)
+    ''', [amount, month, now, now]);
+    
+    debugPrint('月次予算を保存: $amount円 ($month)');
+  }
+
+  // カテゴリ別予算の取得
+  Future<Map<ExpenseCategory, double>> getCategoryBudgets(String month) async {
+    final db = await database;
+    final result = await db.query(
+      'budgets',
+      where: 'month = ?',
+      whereArgs: [month],
+    );
+
+    final budgets = <ExpenseCategory, double>{};
+    for (final row in result) {
+      final categoryIndex = row['category'] as int;
+      final amount = row['amount'] as double;
+      
+      if (categoryIndex >= 0 && categoryIndex < ExpenseCategory.values.length) {
+        budgets[ExpenseCategory.values[categoryIndex]] = amount;
+      }
     }
+    
+    return budgets;
+  }
+
+  // 月次予算の取得
+  Future<double?> getMonthlyBudget(String month) async {
+    final db = await database;
+    final result = await db.query(
+      'monthly_budgets',
+      where: 'month = ?',
+      whereArgs: [month],
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      return result.first['amount'] as double;
+    }
+    return null;
+  }
+
+  // すべての予算データを削除
+  Future<void> clearAllBudgets() async {
+    final db = await database;
+    await db.delete('budgets');
+    await db.delete('monthly_budgets');
+    debugPrint('すべての予算データを削除しました');
+  }
+  // 予算アラート用の追加メソッド
+  Future<double> getTotalExpensesForMonth(String monthString) async {
+    final parts = monthString.split('-');
+    final year = int.parse(parts[0]);
+    final month = int.parse(parts[1]);
+    
+    final startDate = DateTime(year, month, 1);
+    final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+    
+    final expenses = await getExpensesByDateRange(startDate, endDate);
+    return expenses.fold<double>(0.0, (sum, expense) => sum + expense.amount);
+  }
+
+  Future<double> getCategoryExpensesForMonth(ExpenseCategory category, String monthString) async {
+    final parts = monthString.split('-');
+    final year = int.parse(parts[0]);
+    final month = int.parse(parts[1]);
+    
+    final startDate = DateTime(year, month, 1);
+    final endDate = DateTime(year, month + 1, 0, 23, 59, 59);
+    
+    final expenses = await getExpensesByDateRange(startDate, endDate);
+    return expenses
+        .where((expense) => expense.category == category)
+        .fold<double>(0.0, (sum, expense) => sum + expense.amount);
   }
 }

@@ -9,6 +9,7 @@ import '../services/export_service.dart';
 import '../services/database_service.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
+import 'budget_usage_screen.dart';
 import 'expense_search_screen.dart';
 import 'csv_import_screen.dart';
 
@@ -183,26 +184,13 @@ class _SettingScreenState extends State<SettingScreen> {
                       MaterialPageRoute(builder: (context) => const BudgetSettingScreen()),
                     ),
                   ),
-                  const Divider(height: 1),
-                  ListTile(
+                  const Divider(height: 1),                  ListTile(
                     leading: const Icon(Icons.trending_up, color: Colors.blue),
-                    title: const Text('予算使用状況'),
-                    subtitle: const Text('今月の予算消化率を確認'),
+                    title: const Text('予算使用状況'),                    subtitle: const Text('今月の予算消化率を確認'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _showBudgetUsageDialog(),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.notifications_active, color: Colors.orange),
-                    title: const Text('予算アラート'),
-                    subtitle: const Text('予算超過時の通知設定'),
-                    trailing: Switch(
-                      value: true, // TODO: 実際の設定値を取得
-                      onChanged: (value) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('予算アラートを${value ? '有効' : '無効'}にしました')),
-                        );
-                      },
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const BudgetUsageScreen()),
                     ),
                   ),
                 ],
@@ -576,7 +564,6 @@ class _SettingScreenState extends State<SettingScreen> {
       },
     );
   }
-
   // データ削除の実行
   Future<void> _deleteAllData() async {
     showDialog(
@@ -602,15 +589,18 @@ class _SettingScreenState extends State<SettingScreen> {
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
         
+        // スプラッシュ画面に戻り、すべての前の画面をクリア
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/', 
+          (route) => false,
+        );
+        
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('すべてのデータが削除されました'),
             backgroundColor: Colors.green,
           ),
         );
-        
-        // 統計情報を更新
-        _loadStatistics();
       }
     } catch (e) {
       if (mounted) {
@@ -1113,70 +1103,12 @@ class _SettingScreenState extends State<SettingScreen> {
             },
             child: const Text('詳細ガイド'),
           ),
-        ],
-      ),
+        ],      ),
     );
   }
 
-  // 予算使用状況ダイアログ
-  void _showBudgetUsageDialog() {
-    // TODO: 実際の支出データから使用状況を計算
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('📊 今月の予算使用状況'),
-        content: const SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 全体の使用率
-              LinearProgressIndicator(
-                value: 0.65,
-                backgroundColor: Colors.grey,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              ),
-              SizedBox(height: 8),
-              Text('全体: 65% (195,000円 / 300,000円)', style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              
-              // カテゴリ別使用率（サンプル）
-              Text('🍽️ 食費: 78% (39,000円 / 50,000円)'),
-              LinearProgressIndicator(value: 0.78, valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)),
-              SizedBox(height: 8),
-              
-              Text('🚌 交通費: 45% (9,000円 / 20,000円)'),
-              LinearProgressIndicator(value: 0.45, valueColor: AlwaysStoppedAnimation<Color>(Colors.green)),
-              SizedBox(height: 8),
-              
-              Text('🎮 娯楽: 90% (27,000円 / 30,000円)'),
-              LinearProgressIndicator(value: 0.90, valueColor: AlwaysStoppedAnimation<Color>(Colors.red)),
-              SizedBox(height: 8),
-              
-              Text('🏠 家賃: 100% (80,000円 / 80,000円)'),
-              LinearProgressIndicator(value: 1.0, valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('閉じる'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const BudgetSettingScreen()),
-              );
-            },
-            child: const Text('予算設定'),
-          ),
-        ],
-      ),
-    );
-  }
-  // データ管理  // 支出検索画面への遷移
+  // データ管理
+  // 支出検索画面への遷移
   void _navigateToExpenseSearch() {
     Navigator.push(
       context,
