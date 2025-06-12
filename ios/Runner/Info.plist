@@ -4,7 +4,7 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>	<key>CFBundleDisplayName</key>
-	<string>Money:G</string>
+	<string>MoneyG Finance</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -12,7 +12,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Money:G</string>
+	<string>MoneyG Finance</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -44,5 +44,25 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<!-- 通知権限 -->
+	<key>UIUserNotificationSettings</key>
+	<dict>
+		<key>UIUserNotificationTypesAllowed</key>
+		<array>
+			<string>UIUserNotificationTypeAlert</string>
+			<string>UIUserNotificationTypeBadge</string>
+			<string>UIUserNotificationTypeSound</string>
+		</array>
+	</dict>
+	<!-- ファイルアクセス権限（CSV機能用） -->
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<!-- プライバシー設定 -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>CSVファイルの保存にフォトライブラリへのアクセスが必要です</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>CSVファイルのインポート・エクスポートにDocumentsフォルダへのアクセスが必要です</string>
 </dict>
 </plist>

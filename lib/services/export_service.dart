@@ -46,11 +46,7 @@ class ExportService {
       final fileName = 'expenses_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(csvString, encoding: utf8);      // ファイルを共有
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: '支出データ（CSV形式）',
-        subject: '支出データエクスポート',
-      );
+      await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
       throw Exception('CSVエクスポートに失敗しました: $e');
     }
@@ -95,11 +91,7 @@ class ExportService {
       await file.writeAsString(csvString, encoding: utf8);
 
       // ファイルを共有
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: '収入データ（CSV形式）',
-        subject: '収入データエクスポート',
-      );
+      await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
       throw Exception('CSVエクスポートに失敗しました: $e');
     }
@@ -169,11 +161,7 @@ class ExportService {
       await file.writeAsString(csvString, encoding: utf8);
 
       // ファイルを共有
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: '家計簿データ（CSV形式）',
-        subject: '家計簿データエクスポート',
-      );
+      await Share.shareXFiles([XFile(file.path)]);
     } catch (e) {
       throw Exception('CSVエクスポートに失敗しました: $e');
     }
