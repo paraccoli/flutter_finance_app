@@ -335,7 +335,6 @@ lib/
 
 - **GitHubリポジトリ**: https://github.com/paraccoli/flutter_finance_app
 - **Issue Tracker**: [Issues](../../issues)
-- **Discussions**: [Discussions](../../discussions)
 - **Project Board**: [Projects](../../projects)
 
 ### 📱 関連ドキュメント
