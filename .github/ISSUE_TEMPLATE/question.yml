@@ -1,0 +1,161 @@
+name: ❓ 質問 (Question)
+description: 使い方や技術的な質問をする
+title: "[QUESTION] "
+labels: ["question", "help-wanted"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ❓ 質問テンプレート
+        Money:Gアプリの使い方や機能について質問がある場合は、こちらのテンプレートをご利用ください。
+
+  - type: input
+    id: question-summary
+    attributes:
+      label: 📋 質問の概要
+      description: どのようなことについて質問したいですか？簡潔に説明してください
+      placeholder: "例: 予算設定の方法がわからない"
+    validations:
+      required: true
+
+  - type: textarea
+    id: question-details
+    attributes:
+      label: 🔍 詳細な質問内容
+      description: 具体的な質問内容を詳しく記載してください
+      placeholder: "質問の詳細をここに記載してください"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: related-features
+    attributes:
+      label: 📱 関連する画面・機能
+      description: 質問が特定の画面や機能に関連する場合は選択してください
+      options:
+        - label: "🏠 ホーム画面"
+        - label: "💸 支出記録"
+        - label: "💰 収入記録"
+        - label: "📊 月次レポート"
+        - label: "📈 資産分析"
+        - label: "🎯 NISA管理"
+        - label: "⚙️ 設定"
+        - label: "💾 バックアップ・復元"
+        - label: "📤 データエクスポート"
+        - label: "📋 その他"
+
+  - type: textarea
+    id: other-feature
+    attributes:
+      label: 📝 その他の機能（該当する場合）
+      description: 上記にない機能に関する質問の場合は記載してください
+      placeholder: "具体的な機能名や画面名"
+
+  - type: checkboxes
+    id: attempted-solutions
+    attributes:
+      label: 🔄 試したこと
+      description: この問題を解決するために既に試したことがあれば選択してください
+      options:
+        - label: "📚 アプリのヘルプページを確認した"
+        - label: "⚙️ 設定画面を確認した"
+        - label: "🔄 アプリを再起動した"
+        - label: "📱 端末を再起動した"
+        - label: "🔍 既存のIssueを検索した"
+        - label: "📖 READMEやドキュメントを確認した"
+
+  - type: textarea
+    id: other-attempts
+    attributes:
+      label: 🛠️ その他試したこと
+      description: 上記以外に試したことがあれば記載してください
+      placeholder: "具体的に試した内容を記載してください"
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 📱 プラットフォーム
+      description: どのプラットフォームでの質問ですか？
+      options:
+        - 🤖 Android
+        - 🍎 iOS
+        - 💻 Web
+        - 📱 複数プラットフォーム
+        - 🤷 プラットフォームに関係なし
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 📦 アプリバージョン
+      description: 使用しているアプリのバージョンを教えてください
+      placeholder: "例: v1.2.2"
+
+  - type: input
+    id: device-info
+    attributes:
+      label: 📱 デバイス情報
+      description: デバイスとOSバージョンを教えてください
+      placeholder: "例: iPhone 13, iOS 16.5 / Pixel 7, Android 13"
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 スクリーンショット・画面録画
+      description: 可能であれば、質問に関連するスクリーンショットや画面録画を添付してください
+      placeholder: "ファイルをドラッグ&ドロップするか、画像URLを貼り付けてください"
+
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: 🎯 期待する結果
+      description: どのような結果や動作を期待していますか？
+      placeholder: "期待する動作や結果を記載してください"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: 🚨 緊急度
+      description: この質問の緊急度はどの程度ですか？
+      options:
+        - 🔥 Urgent - すぐに解決が必要
+        - ⚠️ Important - 近日中に解決したい
+        - 💡 Normal - 時間があるときに解決したい
+        - 🤷 Low - 急がない
+    validations:
+      required: true
+
+  - type: dropdown
+    id: user-level
+    attributes:
+      label: 👤 利用者レベル
+      description: あなたのアプリ利用経験を教えてください
+      options:
+        - 🆕 初めて使用する
+        - 📱 基本的な機能は使える
+        - 💪 ほとんどの機能を使える
+        - 🧙 上級者
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📚 その他・追加情報
+      description: 質問に関連する追加情報があれば記載してください
+      placeholder: "その他関連情報や詳細な状況など"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📋 確認事項
+      description: 以下の項目を確認してください
+      options:
+        - label: 既存のIssueに同様の質問がないことを確認しました
+          required: true
+        - label: アプリのヘルプ機能やドキュメントを確認しました
+          required: true
+        - label: 質問の内容を明確に記載しました
+          required: true
