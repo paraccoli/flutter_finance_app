@@ -1,0 +1,168 @@
+name: 📋 タスク管理 (Task/Epic)
+description: 開発タスクやエピックの管理
+title: "[TASK] "
+labels: ["task"]
+projects: ["paraccoli/1"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📋 開発タスク・エピック管理
+        開発チーム内でのタスク管理や大型機能(Epic)の管理に使用します。
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: 📝 タスクタイプ
+      description: どのようなタスクですか？
+      options:
+        - 📋 Epic (大型機能)
+        - 🔧 Development Task (開発タスク)
+        - 📚 Documentation (ドキュメント)
+        - 🧪 Testing (テスト)
+        - 🔍 Research (調査・検討)
+        - 🚀 Release Task (リリース作業)
+    validations:
+      required: true
+
+  - type: input
+    id: task-title
+    attributes:
+      label: 📝 タスク名
+      description: タスクを簡潔に表現してください
+      placeholder: "例: カテゴリカスタマイズ機能の実装"
+    validations:
+      required: true
+
+  - type: textarea
+    id: task-description
+    attributes:
+      label: 📋 詳細説明
+      description: タスクの詳細な説明をお書きください
+      placeholder: |
+        - 実装する機能の詳細
+        - 技術的要件
+        - 成果物の定義
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: ✅ 完了条件 (Definition of Done)
+      description: このタスクが完了したと判断する条件を明確に定義してください
+      placeholder: |
+        - [ ] 機能実装完了
+        - [ ] ユニットテスト作成
+        - [ ] 統合テスト実施
+        - [ ] ドキュメント更新
+        - [ ] コードレビュー完了
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🎯 優先度
+      description: このタスクの優先度は？
+      options:
+        - 🔴 Critical
+        - 🟠 High
+        - 🟡 Medium
+        - 🟢 Low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: 🔧 複雑さ
+      description: 実装の複雑さを見積もってください
+      options:
+        - 🟢 Simple (1-4時間)
+        - 🟡 Medium (1-2日)
+        - 🟠 Complex (3-5日)
+        - 🔴 Epic (1週間以上)
+    validations:
+      required: true
+
+  - type: input
+    id: estimated-hours
+    attributes:
+      label: ⏱️ 工数見積もり (時間)
+      description: 作業時間の見積もりを入力してください
+      placeholder: "例: 8"
+
+  - type: checkboxes
+    id: platforms
+    attributes:
+      label: 📱 対象プラットフォーム
+      description: どのプラットフォームに影響しますか？
+      options:
+        - label: 🤖 Android
+        - label: 🍎 iOS
+        - label: 📋 共通 (Dart/Flutter)
+        - label: 📚 Documentation
+        - label: 🔧 DevOps/CI
+
+  - type: input
+    id: milestone
+    attributes:
+      label: 🎯 マイルストーン
+      description: 関連するマイルストーン/バージョンを指定してください
+      placeholder: "例: v1.3.0"
+
+  - type: textarea
+    id: subtasks
+    attributes:
+      label: 📋 サブタスク
+      description: このタスクを細分化したサブタスクがあれば記載してください
+      placeholder: |
+        - [ ] UI設計
+        - [ ] データモデル設計
+        - [ ] API実装
+        - [ ] UI実装
+        - [ ] テスト作成
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: 🔗 依存関係
+      description: 他のタスクやIssueへの依存関係があれば記載してください
+      placeholder: |
+        依存するタスク:
+        - #123 データベース設計
+        
+        ブロックするタスク:
+        - #456 統合テスト
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: 🔧 技術的メモ
+      description: 実装に関する技術的な注意点や参考情報があれば記載してください
+      placeholder: |
+        - 使用するライブラリ
+        - 設計パターン
+        - 参考資料のURL
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: ⚠️ リスク・課題
+      description: 実装における潜在的なリスクや課題があれば記載してください
+      placeholder: |
+        - パフォーマンスへの影響
+        - 互換性の問題
+        - 技術的制約
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: 📋 確認事項
+      description: タスク作成時の確認事項
+      options:
+        - label: 関連するEpicまたは機能要望と紐づけました
+        - label: 優先度とマイルストーンを適切に設定しました
+        - label: 必要な技術調査を完了しています

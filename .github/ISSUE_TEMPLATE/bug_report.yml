@@ -1,0 +1,152 @@
+name: 🐛 バグ報告 (Bug Report)
+description: アプリの不具合やエラーの報告
+title: "[BUG] "
+labels: ["bug"]
+projects: ["paraccoli/1"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐛 バグ報告テンプレート
+        発見したバグについて詳しく教えてください。
+
+  - type: input
+    id: bug-summary
+    attributes:
+      label: 📝 バグの概要
+      description: 問題を簡潔に説明してください
+      placeholder: "例: 予算設定が保存されない"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 📱 プラットフォーム
+      description: どのプラットフォームで発生しましたか？
+      options:
+        - 🤖 Android
+        - 🍎 iOS
+        - 💻 Web
+        - 📱 複数プラットフォーム
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 📦 アプリバージョン
+      description: 使用しているアプリのバージョンを教えてください
+      placeholder: "例: v1.2.2"
+    validations:
+      required: true
+
+  - type: input
+    id: device-info
+    attributes:
+      label: 📱 デバイス情報
+      description: デバイスとOSバージョンを教えてください
+      placeholder: "例: iPhone 13, iOS 16.5 / Pixel 7, Android 13"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 🔄 再現手順
+      description: バグを再現するための詳細な手順を教えてください
+      placeholder: |
+        1. アプリを起動する
+        2. 設定画面を開く
+        3. 予算設定をタップする
+        4. 金額を入力して保存をタップする
+        5. 設定画面に戻る
+        6. 再度予算設定を確認する
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: ✅ 期待される動作
+      description: 本来どのような動作をするべきかを説明してください
+      placeholder: "設定した予算金額が保存され、次回確認時にも表示される"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: ❌ 実際の動作
+      description: 実際にはどのような動作をしたかを説明してください
+      placeholder: "設定した予算金額が保存されず、デフォルト値に戻ってしまう"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 🔁 発生頻度
+      description: この問題はどのくらいの頻度で発生しますか？
+      options:
+        - 🔴 常に発生する (100%)
+        - 🟠 頻繁に発生する (75%以上)
+        - 🟡 時々発生する (50%程度)
+        - 🟢 稀に発生する (25%以下)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: 📊 重要度
+      description: この問題の重要度はどの程度ですか？
+      options:
+        - 🔴 Critical (アプリが使用不可)
+        - 🟠 High (主要機能に影響)
+        - 🟡 Medium (一部機能に影響)
+        - 🟢 Low (軽微な問題)
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-messages
+    attributes:
+      label: ⚠️ エラーメッセージ
+      description: エラーダイアログやログに表示されたメッセージがあれば記載してください
+      placeholder: "エラーメッセージの内容をそのまま記載"
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 スクリーンショット/動画
+      description: 問題の状況を示すスクリーンショットや動画があれば添付してください
+      placeholder: "ファイルをドラッグ&ドロップするか、画像URLを貼り付けてください"
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: 🔧 回避策
+      description: 一時的な回避策があれば教えてください
+      placeholder: "例: アプリを再起動すると一時的に動作する"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📎 追加情報
+      description: その他関連する情報があれば記載してください
+      placeholder: "特定の条件でのみ発生する、など"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📋 確認事項
+      description: 以下の項目を確認してください
+      options:
+        - label: 既存のIssueに同様のバグ報告がないことを確認しました
+          required: true
+        - label: 最新バージョンで問題が発生することを確認しました
+          required: true
+        - label: アプリの再起動を試しましたが問題は解決しませんでした
+          required: true

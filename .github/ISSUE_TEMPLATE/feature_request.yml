@@ -1,0 +1,102 @@
+name: 🚀 機能要望 (Feature Request)
+description: 新機能やアプリ改善の提案
+title: "[FEATURE] "
+labels: ["feature", "enhancement"]
+projects: ["paraccoli/1"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎯 機能要望テンプレート
+        新機能や改善案について詳しく教えてください。
+
+  - type: input
+    id: feature-summary
+    attributes:
+      label: 📝 機能概要
+      description: 実装したい機能を簡潔に説明してください
+      placeholder: "例: カテゴリのカスタマイズ機能"
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: 📋 詳細説明
+      description: 機能の詳細な説明をお書きください
+      placeholder: |
+        - どのような機能なのか
+        - どのように動作するのか
+        - ユーザーにとってのメリット
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: 🎭 ユースケース
+      description: この機能をどのような場面で使用するかを説明してください
+      placeholder: |
+        例:
+        1. ユーザーが独自のカテゴリを作成したい時
+        2. 既存カテゴリが自分の支出パターンに合わない時
+        3. より詳細な分析をしたい時
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🎯 優先度
+      description: この機能の優先度はどの程度ですか？
+      options:
+        - 🔴 Critical (緊急)
+        - 🟠 High (高)
+        - 🟡 Medium (中)
+        - 🟢 Low (低)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: platforms
+    attributes:
+      label: 📱 対象プラットフォーム
+      description: どのプラットフォームでの実装を希望しますか？
+      options:
+        - label: 🤖 Android
+        - label: 🍎 iOS
+        - label: 💻 Web (将来)
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: 🔧 実装難易度 (推定)
+      description: 実装の複雑さはどの程度だと思いますか？
+      options:
+        - 🟢 Easy (数時間)
+        - 🟡 Medium (1-2日)
+        - 🟠 Hard (1週間)
+        - 🔴 Complex (数週間)
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 代替案
+      description: 他に考えられる実装方法や回避策があれば記載してください
+      placeholder: "現在はこのような方法で対応している、など"
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📎 追加情報
+      description: スクリーンショット、参考リンク、その他関連情報があれば記載してください
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📋 確認事項
+      description: 以下の項目を確認してください
+      options:
+        - label: 既存のIssueに同様の機能要望がないことを確認しました
+          required: true
+        - label: この機能がMoneyG Finance Appの方針に合致することを理解しています
+          required: true
