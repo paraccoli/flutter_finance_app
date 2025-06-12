@@ -3,8 +3,6 @@ name: Bug report
 about: バグや問題を報告する
 title: '[BUG] '
 labels: ['bug', 'needs-triage']
-title: "[BUG] "
-labels: bug
 assignees: ''
 
 ---

@@ -1,45 +1,45 @@
-# 🗂️ GitHub Projects - Configuration Details
+# 🗂️ GitHub Projects - 設定詳細
 
-## 📝 Project Short Description
+## 📝 プロジェクト短縮説明
 
 ```
-Privacy-focused personal finance app with local storage, cross-platform support (Android/iOS), and comprehensive expense tracking features.
+プライバシー重視・ローカル保存完結・クロスプラットフォーム対応（Android/iOS）の包括的な家計管理アプリ
 ```
 
 ---
 
-## 📋 Project README (for GitHub Projects)
+## 📋 プロジェクトREADME（GitHub Projects用）
 
 ```markdown
-# MoneyG Finance App Development
+# MoneyG Finance App 開発プロジェクト
 
-Privacy-first personal finance management with complete local storage.
+プライバシーファーストな完全ローカル保存の家計管理アプリ
 
-## 🎯 Current Focus
-- **v1.2.2**: iOS initial release + Android improvements
-- **Next**: v1.3.0 user customization features
+## 🎯 現在の重点項目
+- **v1.2.2**: iOS初回リリース + Android改善
+- **次期**: v1.3.0 ユーザーカスタマイズ機能
 
-## ✨ Key Features
-- 💰 Income/Expense tracking
-- 📊 Budget management with alerts
-- 📤 CSV import/export
-- 🔒 100% local storage
-- 📱 Android + iOS support
+## ✨ 主要機能
+- 💰 収入・支出記録
+- 📊 アラート付き予算管理
+- 📤 CSV インポート/エクスポート
+- 🔒 100% ローカル保存
+- 📱 Android + iOS対応
 
-## 📈 Progress
-- **Platform**: ✅ Android ✅ iOS
-- **Core Features**: ✅ Complete
-- **Security**: ✅ Local-only
-- **Community**: 🔄 Growing
+## 📈 進捗状況
+- **プラットフォーム**: ✅ Android ✅ iOS
+- **コア機能**: ✅ 完了
+- **セキュリティ**: ✅ ローカルのみ
+- **コミュニティ**: 🔄 成長中
 
-[View Repository →](https://github.com/paraccoli/flutter_finance_app)
+[リポジトリを見る →](https://github.com/paraccoli/flutter_finance_app)
 ```
 
 ---
 
 ## 📊 Status Updates の説明
 
-### 🤔 "Add a project status update" とは？
+### 🤔 "プロジェクト状況更新を追加" とは？
 
 **Status Updates** は GitHub Projects の機能で、プロジェクトの健康状態と進捗を追跡するための定期的なレポートです。
 
@@ -50,90 +50,90 @@ Privacy-first personal finance management with complete local storage.
 - **コミュニケーション**: ステークホルダーとの情報共有
 
 #### 📝 Status Update の内容
-1. **📈 Progress Summary**: 期間中の主な達成事項
-2. **🎯 Goals Status**: 目標に対する進捗状況
-3. **🚧 Blockers/Challenges**: 障害や課題
-4. **🔄 Next Steps**: 次期の重点事項
-5. **📊 Metrics**: 数値的な進捗指標
+1. **📈 進捗サマリー**: 期間中の主な達成事項
+2. **🎯 目標状況**: 目標に対する進捗状況
+3. **🚧 障害・課題**: ブロッカーや課題
+4. **🔄 次のステップ**: 次期の重点事項
+5. **📊 メトリクス**: 数値的な進捗指標
 
 #### ⏰ 推奨頻度
-- **Weekly**: アクティブ開発期間
-- **Bi-weekly**: 安定期・メンテナンス期間
-- **Monthly**: 長期プロジェクト
-- **Milestone**: 主要リリース時
+- **週次**: アクティブ開発期間
+- **隔週**: 安定期・メンテナンス期間
+- **月次**: 長期プロジェクト
+- **マイルストーン**: 主要リリース時
 
 ---
 
 ## 📋 Status Update テンプレート例
 
-### 🗓️ Weekly Status Update - Week of June 12, 2025
+### 🗓️ 週次状況更新 - 2025年6月12日週
 
-#### 📈 Progress This Week
-- ✅ **iOS v1.2.2 Released**: Initial iOS version with full feature parity
-- ✅ **Project Management Setup**: GitHub Projects configuration completed
-- ✅ **Documentation Updated**: Comprehensive guides and templates
-- 🔄 **Community Engagement**: Responding to Google Calendar integration request (#5)
+#### 📈 今週の進捗
+- ✅ **iOS v1.2.2 リリース**: 完全機能同等のiOS初回版
+- ✅ **プロジェクト管理セットアップ**: GitHub Projects設定完了
+- ✅ **ドキュメント更新**: 包括的ガイドとテンプレート
+- 🔄 **コミュニティエンゲージメント**: Googleカレンダー連携要望への対応 (#5)
 
-#### 🎯 Goals Status
-- **v1.2.2 Release**: ✅ **COMPLETED** (Android + iOS)
-- **Project Setup**: ✅ **COMPLETED** (GitHub Projects + Issue templates)
-- **Community Growth**: 🔄 **IN PROGRESS** (1 new feature request)
+#### 🎯 目標状況
+- **v1.2.2 リリース**: ✅ **完了** (Android + iOS)
+- **プロジェクトセットアップ**: ✅ **完了** (GitHub Projects + Issue テンプレート)
+- **コミュニティ成長**: 🔄 **進行中** (新規機能要望1件)
 
-#### 📊 Key Metrics
-- **Issues Closed**: 3/5 (60%)
-- **PRs Merged**: 5/8 (62.5%)
-- **Release Status**: ✅ On Schedule
-- **Community Engagement**: 📈 Increasing
+#### 📊 主要メトリクス
+- **Issue クローズ**: 3/5件 (60%)
+- **PR マージ**: 5/8件 (62.5%)
+- **リリース状況**: ✅ スケジュール通り
+- **コミュニティエンゲージメント**: 📈 増加中
 
-#### 🚧 Challenges
-- **iOS Distribution**: Currently developer-build only (App Store review pending)
-- **Feature Prioritization**: Balancing new features vs stability
-- **Documentation Maintenance**: Keeping multi-platform docs synchronized
+#### 🚧 課題
+- **iOS配布**: 現在は開発者ビルドのみ（App Store審査待ち）
+- **機能優先順位**: 新機能と安定性のバランス
+- **ドキュメント保守**: マルチプラットフォーム文書の同期
 
-#### 🔄 Next Week Focus
-- **v1.3.0 Planning**: Define user customization features scope
-- **Calendar Integration**: Technical feasibility study for Google Calendar sync
-- **Community Feedback**: Analyze and prioritize user requests
-- **Performance Review**: iOS/Android performance optimization opportunities
+#### 🔄 来週の重点項目
+- **v1.3.0 計画**: ユーザーカスタマイズ機能スコープ定義
+- **カレンダー統合**: Googleカレンダー同期の技術調査
+- **コミュニティフィードバック**: ユーザー要望の分析・優先順位付け
+- **パフォーマンスレビュー**: iOS/Android最適化機会
 
-#### 🎯 Upcoming Milestones
-- **June 19**: v1.3.0 Epic definition and task breakdown
-- **June 26**: Calendar integration prototype
-- **July 3**: v1.3.0 Sprint 1 kickoff
+#### 🎯 今後のマイルストーン
+- **6月19日**: v1.3.0 エピック定義とタスク分解
+- **6月26日**: カレンダー統合プロトタイプ
+- **7月3日**: v1.3.0 スプリント1開始
 
 ---
 
 ## 📋 Status Update作成手順
 
-### 1. GitHub Projects Dashboard
+### 1. GitHub Projects ダッシュボード
 1. プロジェクトボードにアクセス
 2. 右上の "..." メニューをクリック
-3. "Add update" を選択
+3. "更新を追加" を選択
 
 ### 2. 更新内容の入力
 ```markdown
-# Weekly Update - June 12, 2025
+# 週次更新 - 2025年6月12日
 
-## 🎉 Achievements
-- iOS v1.2.2 successfully released
-- GitHub Projects fully configured
-- Community engagement improving
+## 🎉 達成事項
+- iOS v1.2.2 正常リリース
+- GitHub Projects 完全設定
+- コミュニティエンゲージメント改善
 
-## 📊 Metrics
-- 3 issues resolved this week
-- 2 new feature requests received
-- 100% milestone completion rate
+## 📊 メトリクス
+- 今週3件のissue解決
+- 新規機能要望2件受領
+- マイルストーン完了率100%
 
-## 🎯 Next Week
-- v1.3.0 planning and design
-- Calendar integration research
-- Performance optimization review
+## 🎯 来週
+- v1.3.0 計画・設計
+- カレンダー統合調査
+- パフォーマンス最適化レビュー
 ```
 
 ### 3. 可視性設定
-- **Public**: コミュニティ・ユーザーに公開
-- **Private**: チーム内のみ
-- **Contributors**: コントリビューターのみ
+- **パブリック**: コミュニティ・ユーザーに公開
+- **プライベート**: チーム内のみ
+- **コントリビューター**: コントリビューターのみ
 
 ---
 
@@ -141,24 +141,24 @@ Privacy-first personal finance management with complete local storage.
 
 ### 📋 統合対象の整理
 
-#### 🎯 Open Issues
+#### 🎯 オープンIssues
 - **#5**: Googleカレンダー連携の提案
-  - Label: `feature-request`, `priority: medium`
-  - Project: v1.4.0 milestone
-  - Status: Backlog → Research
+  - ラベル: `type: feature`, `priority: medium`
+  - プロジェクト: v1.4.0 マイルストーン
+  - ステータス: Backlog → 調査
 
-#### ✅ Closed Issues  
+#### ✅ クローズIssues  
 - **#4**: 予算設定が反映しない問題 → PR #8で解決
-  - Label: `bug`, `priority: high`
-  - Status: Done
-  - Resolution: v1.2.2 リリースで修正
+  - ラベル: `bug`, `priority: high`
+  - ステータス: 完了
+  - 解決: v1.2.2 リリースで修正
 
 - **#3**: CSVインポート機能の追加 → PR #7で実装
-  - Label: `feature`, `priority: high`  
-  - Status: Done
-  - Resolution: v1.2.2 リリースで実装
+  - ラベル: `type: feature`, `priority: high`  
+  - ステータス: 完了
+  - 解決: v1.2.2 リリースで実装
 
-#### 🔄 Merged PRs
+#### 🔄 マージ済みPRs
 - **PR #8**: 予算設定バグ修正
 - **PR #7**: スプラッシュスクリーン + CSV機能
 - **PR #6, #2, #1**: 初期機能統合
@@ -168,18 +168,18 @@ Privacy-first personal finance management with complete local storage.
 #### 現在のラベル → 推奨ラベル
 - `bug` → `bug` + `priority: high`
 - `enhancement` → `enhancement` + `priority: medium`
-- `feature-request` → `feature` + `priority: medium`
+- `feature-request` → `type: feature` + `priority: medium`
 
-### 📊 Project Board配置
+### 📊 プロジェクトボード配置
 
-#### Backlog Column
-- #5 Google Calendar Integration (future v1.4.0)
+#### Backlog カラム
+- #5 Googleカレンダー統合 (将来のv1.4.0)
 
-#### Done Column  
-- #4 Budget Settings Bug (v1.2.2)
-- #3 CSV Import Feature (v1.2.2)
-- PR #8 Budget Fix Implementation
-- PR #7 Splash Screen + CSV Implementation
+#### Done カラム  
+- #4 予算設定バグ (v1.2.2)
+- #3 CSVインポート機能 (v1.2.2)
+- PR #8 予算修正実装
+- PR #7 スプラッシュスクリーン + CSV実装
 
 ---
 

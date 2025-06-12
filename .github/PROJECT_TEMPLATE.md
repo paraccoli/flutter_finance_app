@@ -1,15 +1,15 @@
-# MoneyG Finance App - Project Board Template
+# MoneyG Finance App - プロジェクトボードテンプレート
 
-## 🎯 Quick Setup Guide
+## 🎯 クイックセットアップガイド
 
-### 1. Create GitHub Project
-1. Go to: https://github.com/paraccoli/flutter_finance_app
-2. Click "Projects" tab
-3. Click "New project"
-4. Select "Board" template
-5. Name: "MoneyG Finance App Development"
+### 1. GitHub Project作成
+1. https://github.com/paraccoli/flutter_finance_app にアクセス
+2. "Projects" タブをクリック
+3. "New project" をクリック
+4. "Board" テンプレートを選択
+5. 名前: "MoneyG Finance App Development"
 
-### 2. Configure Board Columns
+### 2. ボードカラム設定
 - 📥 Backlog
 - 📝 Todo  
 - 🔄 In Progress
@@ -17,24 +17,24 @@
 - 🧪 Testing
 - ✅ Done
 
-### 3. Add Custom Fields
-- Priority: Critical/High/Medium/Low
-- Platform: Android/iOS/Both
-- Size: XS/S/M/L/XL
-- Story Points: Number field
+### 3. カスタムフィールド追加
+- 優先度: Critical/High/Medium/Low
+- プラットフォーム: Android/iOS/Both
+- サイズ: XS/S/M/L/XL
+- ストーリーポイント: 数値フィールド
 
-### 4. Sample Issues for v1.3.0
+### 4. v1.3.0用サンプルIssues
 
 #### Epic: カテゴリカスタマイズ機能
 ```
-Title: [EPIC] ユーザー定義カテゴリ機能
-Labels: feature, priority: high, platform: both, size: XL
-Story Points: 21
+タイトル: [EPIC] ユーザー定義カテゴリ機能
+ラベル: type: feature, priority: high, platform: both, size: XL
+ストーリーポイント: 21
 
-Description:
+説明:
 ユーザーが独自のカテゴリを作成・編集・削除できる機能
 
-Acceptance Criteria:
+完了条件:
 - [ ] カテゴリ一覧画面でカスタムカテゴリ表示
 - [ ] カテゴリ追加・編集・削除機能
 - [ ] カテゴリアイコン選択機能
@@ -44,14 +44,14 @@ Acceptance Criteria:
 
 #### Feature: カテゴリ作成UI
 ```
-Title: [FEATURE] カテゴリ作成・編集画面の実装
-Labels: feature, priority: high, platform: both, size: M
-Story Points: 8
+タイトル: [FEATURE] カテゴリ作成・編集画面の実装
+ラベル: type: feature, priority: high, platform: both, size: M
+ストーリーポイント: 8
 
-Description:
+説明:
 新規カテゴリの作成と既存カテゴリの編集を行うUI画面
 
-Tasks:
+タスク:
 - [ ] UI設計・モックアップ作成
 - [ ] カテゴリ編集画面実装
 - [ ] バリデーション機能
@@ -60,14 +60,14 @@ Tasks:
 
 #### Task: データベース設計
 ```
-Title: [TASK] カスタムカテゴリ用DB設計
-Labels: task, priority: high, platform: both, size: S
-Story Points: 3
+タイトル: [TASK] カスタムカテゴリ用DB設計
+ラベル: task, priority: high, platform: both, size: S
+ストーリーポイント: 3
 
-Description:
+説明:
 カスタムカテゴリを保存するためのデータベース設計
 
-Technical Requirements:
+技術要件:
 - カテゴリテーブル設計
 - マイグレーション作成
 - 既存データとの互換性確保
@@ -75,53 +75,53 @@ Technical Requirements:
 
 #### Bug: 予算アラート改善
 ```
-Title: [BUG] 予算アラートの通知タイミング改善
-Labels: bug, priority: medium, platform: both, size: S
-Story Points: 2
+タイトル: [BUG] 予算アラートの通知タイミング改善
+ラベル: bug, priority: medium, platform: both, size: S
+ストーリーポイント: 2
 
-Description:
+説明:
 予算超過時の通知が遅延する問題の修正
 
-Steps to Reproduce:
+再現手順:
 1. 予算設定
 2. 支出入力で予算超過
 3. 通知が即座に表示されない
 
-Expected: 即座に通知表示
-Actual: 数分後に通知
+期待動作: 即座に通知表示
+実際動作: 数分後に通知
 ```
 
-### 5. Automation Rules
-- New issue → Backlog
-- Assign user → In Progress
-- Create PR → Review  
-- Merge PR → Done
+### 5. 自動化ルール
+- 新規issue → Backlog
+- ユーザーアサイン → In Progress
+- PR作成 → Review  
+- PR マージ → Done
 
-### 6. Sprint Planning Template
+### 6. スプリント計画テンプレート
 
-#### Sprint 1 (Week 1-2): Foundation
+#### スプリント1 (第1-2週): 基盤
 - カテゴリDB設計
 - 基本UI実装
 - データ移行検討
 
-#### Sprint 2 (Week 3-4): Core Features  
+#### スプリント2 (第3-4週): コア機能  
 - カテゴリCRUD機能
 - アイコン選択機能
 - バリデーション
 
-#### Sprint 3 (Week 5-6): Polish & Test
+#### スプリント3 (第5-6週): 仕上げ・テスト
 - UI/UX改善
 - 統合テスト
 - パフォーマンス最適化
 
-### 7. Success Metrics
-- Velocity: 15-20 story points/sprint
-- Bug ratio: <20% of total issues
-- Cycle time: <5 days average
-- User satisfaction: >4.5/5.0
+### 7. 成功メトリクス
+- ベロシティ: 15-20 ストーリーポイント/スプリント
+- バグ比率: 総issue数の20%未満
+- サイクルタイム: 平均5日未満
+- ユーザー満足度: 5点満点中4.5点以上
 
-### 8. Risk Mitigation
-- Technical debt management
-- Regular code reviews
-- Continuous integration
-- User feedback integration
+### 8. リスク軽減策
+- 技術負債管理
+- 定期的なコードレビュー
+- 継続的インテグレーション
+- ユーザーフィードバック統合

@@ -1,8 +1,8 @@
-# 🗂️ GitHub Projects Configuration
+# 🗂️ GitHub Projects 設定
 
 ## 📋 プロジェクトボード設定
 
-### 🎯 MoneyG Finance App Development Board
+### 🎯 MoneyG Finance App 開発ボード
 
 #### カラム設定
 - 📥 **Backlog** - 新規アイデア・要望
@@ -22,7 +22,7 @@
 
 ## 🏷️ ラベル設定コマンド
 
-以下のコマンドでラベルを一括設定できます：
+MoneyG Finance App用のラベルを一括設定するコマンド：
 
 ```bash
 # 優先度ラベル
@@ -32,11 +32,11 @@ gh label create "priority: medium" --color "fbca04" --description "中優先度"
 gh label create "priority: low" --color "0e8a16" --description "低優先度"
 
 # カテゴリラベル
-gh label create "feature" --color "a2eeef" --description "新機能"
-gh label create "enhancement" --color "84b6eb" --description "改善"
-gh label create "documentation" --color "0052cc" --description "ドキュメント"
-gh label create "security" --color "ee0701" --description "セキュリティ"
-gh label create "performance" --color "fef2c0" --description "パフォーマンス"
+gh label create "type: feature" --color "a2eeef" --description "新機能"
+gh label create "type: enhancement" --color "84b6eb" --description "改善"
+gh label create "type: documentation" --color "0052cc" --description "ドキュメント"
+gh label create "type: security" --color "ee0701" --description "セキュリティ"
+gh label create "type: performance" --color "fef2c0" --description "パフォーマンス"
 
 # プラットフォームラベル
 gh label create "platform: android" --color "3ddc84" --description "Android固有"
@@ -63,25 +63,25 @@ gh label create "size: XL" --color "d93f0b" --description "1週間以上"
 
 ### カスタムフィールド定義
 
-#### Single Select Fields
-- **Priority**: Critical, High, Medium, Low
-- **Status**: Planning, In Progress, Review, Testing, Done
-- **Platform**: Android, iOS, Both, Documentation
-- **Size**: XS, S, M, L, XL
+#### 単一選択フィールド
+- **優先度**: Critical, High, Medium, Low
+- **ステータス**: Planning, In Progress, Review, Testing, Done
+- **プラットフォーム**: Android, iOS, Both, Documentation
+- **サイズ**: XS, S, M, L, XL
 
-#### Number Fields
-- **Story Points**: 見積もりポイント
-- **Hours Estimated**: 工数見積もり(時間)
-- **Hours Actual**: 実績工数(時間)
+#### 数値フィールド
+- **ストーリーポイント**: 見積もりポイント
+- **工数見積もり**: 工数見積もり(時間)
+- **実績工数**: 実績工数(時間)
 
-#### Date Fields
-- **Start Date**: 開始予定日
-- **Due Date**: 完了予定日
-- **Completed Date**: 完了日
+#### 日付フィールド
+- **開始予定日**: 開始予定日
+- **完了予定日**: 完了予定日
+- **完了日**: 完了日
 
-#### People Fields
-- **Assignee**: 担当者
-- **Reviewer**: レビュアー
+#### 担当者フィールド
+- **担当者**: 担当者
+- **レビュアー**: レビュアー
 
 ---
 
@@ -91,7 +91,7 @@ gh label create "size: XL" --color "d93f0b" --description "1週間以上"
 
 ```yaml
 # .github/workflows/project-automation.yml
-name: Project Automation
+name: プロジェクト自動化
 
 on:
   issues:
@@ -103,7 +103,7 @@ jobs:
   update-project:
     runs-on: ubuntu-latest
     steps:
-      - name: Add to project
+      - name: プロジェクトに追加
         uses: actions/add-to-project@v0.4.0
         with:
           project-url: https://github.com/users/paraccoli/projects/1
@@ -117,14 +117,14 @@ jobs:
 ### ダッシュボードビュー
 
 #### 開発進捗ダッシュボード
-- **Burndown Chart**: マイルストーン進捗
-- **Velocity Chart**: スプリント毎の完了ポイント
-- **Cycle Time**: Issue→完了までの時間
+- **バーンダウンチャート**: マイルストーン進捗
+- **ベロシティチャート**: スプリント毎の完了ポイント
+- **サイクルタイム**: Issue→完了までの時間
 
 #### 品質ダッシュボード
-- **Bug Ratio**: 機能開発 vs バグ修正比率
-- **Resolution Time**: バグ修正時間
-- **Reopen Rate**: 再オープン率
+- **バグ比率**: 機能開発 vs バグ修正比率
+- **解決時間**: バグ修正時間
+- **再オープン率**: 再オープン率
 
 ---
 
@@ -142,7 +142,7 @@ jobs:
    - Backlog, Todo, In Progress, Review, Testing, Done
 
 3. **フィールド追加**
-   - Priority, Platform, Size, Story Points等
+   - 優先度、プラットフォーム、サイズ、ストーリーポイント等
 
 4. **ラベル設定**
    - 上記のgh labelコマンド実行

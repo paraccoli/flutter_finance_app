@@ -1,156 +1,156 @@
-# 📋 MoneyG Finance App - Project Management
+# 📋 MoneyG Finance App - プロジェクト管理
 
-> **Personal finance management app with complete local storage and cross-platform support**
+> **完全ローカル保存・クロスプラットフォーム対応の個人家計管理アプリ**
 
-## 🎯 Project Overview
+## 🎯 プロジェクト概要
 
-MoneyG Finance App is a privacy-focused personal finance management application built with Flutter, supporting both Android and iOS platforms. All data is stored locally on the device, ensuring complete user privacy and security.
+MoneyG Finance Appは、プライバシーを重視した個人家計管理アプリケーションです。FlutterでAndroid・iOS両プラットフォームに対応しており、すべてのデータはデバイス内にローカル保存され、完全なユーザープライバシーとセキュリティを確保しています。
 
-### 🔑 Key Features
-- 💰 Income & Expense Tracking
-- 📊 Budget Management with Real-time Alerts  
-- 📈 Monthly Reports with Interactive Charts
-- 📤 CSV Import/Export for Data Migration
-- 🔒 Complete Local Storage (No Cloud Sync)
-- 📱 Cross-Platform (Android & iOS)
-- 🌙 Dark Mode Support
-
----
-
-## 📊 Current Status
-
-### 🚀 Latest Release: v1.2.2
-- **🍎 iOS Initial Release**: Full iOS 13.0+ support
-- **🤖 Android Updated**: Enhanced features and bug fixes
-- **✨ New Features**: Splash screen, CSV import/export, swipe actions
-- **🐛 Major Fixes**: Budget settings real-time update
-
-### 📈 Development Progress
-- **Platform Support**: ✅ Android, ✅ iOS
-- **Core Features**: ✅ Complete
-- **CSV Integration**: ✅ Complete  
-- **Security**: ✅ Local storage only
-- **Documentation**: ✅ Comprehensive
+### 🔑 主要機能
+- 💰 収入・支出記録
+- 📊 リアルタイムアラート付き予算管理
+- 📈 インタラクティブグラフによる月次レポート
+- 📤 データ移行用CSV インポート/エクスポート
+- 🔒 完全ローカル保存（クラウド同期なし）
+- 📱 クロスプラットフォーム（Android・iOS）
+- 🌙 ダークモード対応
 
 ---
 
-## 🗂️ Project Management
+## 📊 現在の状況
 
-### 📋 Current Sprint Focus
-**Sprint Goal**: Stabilization & Community Feedback Integration
+### 🚀 最新リリース: v1.2.2
+- **🍎 iOS初回リリース**: iOS 13.0以上完全対応
+- **🤖 Android版更新**: 機能強化とバグ修正
+- **✨ 新機能**: スプラッシュスクリーン、CSV インポート/エクスポート、スワイプアクション
+- **🐛 重要な修正**: 予算設定のリアルタイム更新
 
-#### 🔄 In Progress
+### 📈 開発進捗
+- **プラットフォーム対応**: ✅ Android、✅ iOS
+- **コア機能**: ✅ 完了
+- **CSV統合**: ✅ 完了
+- **セキュリティ**: ✅ ローカル保存のみ
+- **ドキュメント**: ✅ 包括的
+
+---
+
+## 🗂️ プロジェクト管理
+
+### 📋 現在のスプリント重点項目
+**スプリント目標**: 安定化・コミュニティフィードバック統合
+
+#### 🔄 進行中
 - Googleカレンダー連携機能の検討 (#5)
 - ユーザーフィードバック分析
 - v1.3.0 計画策定
 
-#### ✅ Recently Completed
+#### ✅ 最近完了した項目
 - ✅ 予算設定反映問題修正 (#4, PR #8)
 - ✅ CSVインポート機能実装 (#3, PR #7)
 - ✅ スプラッシュスクリーン追加 (PR #7)
 - ✅ iOS版初回リリース
 - ✅ クロスプラットフォーム対応完了
 
-### 🎯 Next Milestones
+### 🎯 次期マイルストーン
 
-#### v1.3.0 - User Customization (予定: 2025年7月)
+#### v1.3.0 - ユーザーカスタマイズ (予定: 2025年7月)
 - 🎨 カテゴリカスタマイズ機能
 - 🔧 設定画面の拡張
 - 📱 UI/UX改善
 
-#### v1.4.0 - Advanced Features (予定: 2025年8月)
+#### v1.4.0 - 高度な機能 (予定: 2025年8月)
 - 🗓️ カレンダー連携機能
 - 💾 自動バックアップ機能
 - 📊 詳細統計・分析
 
 ---
 
-## 📈 Development Metrics
+## 📈 開発メトリクス
 
-### 🎯 Performance Indicators
-- **Release Frequency**: Monthly releases
-- **Bug Resolution**: Average 2 days
-- **Feature Delivery**: 2-week sprints
-- **Code Quality**: 90%+ test coverage target
+### 🎯 パフォーマンス指標
+- **リリース頻度**: 月次リリース
+- **バグ解決**: 平均2日
+- **機能デリバリー**: 2週間スプリント
+- **コード品質**: テストカバレッジ90%以上目標
 
-### 📊 Project Health
-- **Active Development**: ✅ Daily commits
-- **Community Engagement**: ✅ Issue responses <24h
-- **Documentation**: ✅ Up-to-date
-- **Security**: ✅ No vulnerabilities
-
----
-
-## 🤝 Contribution & Community
-
-### 👥 Current Team
-- **@paraccoli**: Project Owner, Lead Developer
-- **Community**: Bug reports, feature requests, feedback
-
-### 🔄 Development Process
-1. **Issue Triage**: Daily review of new issues
-2. **Sprint Planning**: Bi-weekly sprint planning
-3. **Code Review**: All PRs require review
-4. **Testing**: Automated testing + manual QA
-5. **Release**: Monthly stable releases
-
-### 📞 Communication Channels
-- **GitHub Issues**: Bug reports & feature requests
-- **GitHub Discussions**: General questions & community
-- **Pull Requests**: Code contributions
+### 📊 プロジェクト健全性
+- **アクティブ開発**: ✅ 日次コミット
+- **コミュニティエンゲージメント**: ✅ Issue応答24時間以内
+- **ドキュメント**: ✅ 最新状態
+- **セキュリティ**: ✅ 脆弱性なし
 
 ---
 
-## 🎯 Strategic Goals
+## 🤝 コントリビューション・コミュニティ
 
-### 📱 Platform Excellence
-- **Native Performance**: Flutter optimization
-- **Platform Integration**: iOS/Android best practices
-- **User Experience**: Intuitive, responsive design
+### 👥 現在のチーム
+- **@paraccoli**: プロジェクト所有者、リード開発者
+- **コミュニティ**: バグ報告、機能要望、フィードバック
 
-### 🔒 Privacy & Security
-- **Local-First**: No cloud dependencies
-- **Encryption**: Secure local data storage
-- **Transparency**: Open source development
+### 🔄 開発プロセス
+1. **Issue トリアージ**: 新規Issueの日次レビュー
+2. **スプリント計画**: 隔週のスプリント計画
+3. **コードレビュー**: すべてのPRにレビュー必須
+4. **テスト**: 自動テスト + 手動QA
+5. **リリース**: 月次安定版リリース
 
-### 🌟 User-Centric Development
-- **Community Feedback**: Regular user input integration
-- **Accessibility**: Support for all users
-- **Localization**: Multi-language support (planned)
-
----
-
-## 📚 Resources
-
-### 📖 Documentation
-- [Installation Guide](../README.md)
-- [iOS Setup Guide](../release/ios/INSTALL_iOS.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
-- [Security Policy](../SECURITY.md)
-
-### 🔗 Quick Links
-- **GitHub Repository**: https://github.com/paraccoli/flutter_finance_app
-- **Latest Release**: [v1.2.2](../../releases/tag/v1.2.2)
-- **Issue Tracker**: [Issues](../../issues)
-- **Project Board**: [Projects](../../projects)
+### 📞 コミュニケーションチャンネル
+- **GitHub Issues**: バグ報告・機能要望
+- **GitHub Discussions**: 一般的な質問・コミュニティ
+- **Pull Requests**: コード貢献
 
 ---
 
-## 📊 Project Statistics
+## 🎯 戦略的目標
 
-### 🗂️ Repository Stats
-- **Language**: Dart (Flutter)
-- **Platform**: Android, iOS
-- **License**: MIT
-- **Contributors**: 1 (growing)
+### 📱 プラットフォーム・エクセレンス
+- **ネイティブパフォーマンス**: Flutter最適化
+- **プラットフォーム統合**: iOS/Androidベストプラクティス
+- **ユーザーエクスペリエンス**: 直感的でレスポンシブなデザイン
 
-### 📈 Activity Summary
-- **Total Commits**: 50+
-- **Total Issues**: 5 (3 closed)
-- **Total PRs**: 8 (5 merged)
-- **Release Count**: 4 versions
+### 🔒 プライバシー・セキュリティ
+- **ローカルファースト**: クラウド依存なし
+- **暗号化**: セキュアなローカルデータ保存
+- **透明性**: オープンソース開発
+
+### 🌟 ユーザー中心の開発
+- **コミュニティフィードバック**: 定期的なユーザー意見統合
+- **アクセシビリティ**: すべてのユーザーへの対応
+- **ローカライゼーション**: 多言語対応（計画中）
 
 ---
 
-*Last Updated: 2025年6月12日*  
-*Project Status: ✅ Active Development*
+## 📚 リソース
+
+### 📖 ドキュメント
+- [インストールガイド](../README.md)
+- [iOS セットアップガイド](../release/ios/INSTALL_iOS.md)
+- [コントリビューションガイドライン](../CONTRIBUTING.md)
+- [セキュリティポリシー](../SECURITY.md)
+
+### 🔗 クイックリンク
+- **GitHubリポジトリ**: https://github.com/paraccoli/flutter_finance_app
+- **最新リリース**: [v1.2.2](../../releases/tag/v1.2.2)
+- **Issue トラッカー**: [Issues](../../issues)
+- **プロジェクトボード**: [Projects](../../projects)
+
+---
+
+## 📊 プロジェクト統計
+
+### 🗂️ リポジトリ統計
+- **言語**: Dart (Flutter)
+- **プラットフォーム**: Android、iOS
+- **ライセンス**: MIT
+- **コントリビューター**: 1名（拡大中）
+
+### 📈 活動サマリー
+- **総コミット数**: 50+
+- **総Issue数**: 5件（3件クローズ）
+- **総PR数**: 8件（5件マージ）
+- **リリース数**: 4バージョン
+
+---
+
+*最終更新: 2025年6月12日*  
+*プロジェクト状況: ✅ アクティブ開発中*
