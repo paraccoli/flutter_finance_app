@@ -1,0 +1,197 @@
+name: 🛠️ コード品質改善 (Code Quality)
+description: コード品質改善、リント、非推奨API、リファクタリングなどのコード関連問題
+title: "[CODE] "
+labels: ["code-quality", "maintenance"]
+assignees: ["paraccoli"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🛠️ コード品質改善テンプレート
+        コード品質に関する問題や改善提案について詳しく教えてください。
+
+  - type: input
+    id: issue-summary
+    attributes:
+      label: 📝 問題の概要
+      description: コード品質に関する問題を簡潔に説明してください
+      placeholder: "例: share_plusパッケージの非推奨API使用による警告"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: 🔍 問題の種類
+      description: どのような種類の問題ですか？
+      options:
+        - 🚨 リント警告/エラー
+        - ⚠️ 非推奨API使用
+        - 🔄 コードの重複
+        - ⚡ パフォーマンス問題
+        - 🔐 セキュリティ問題
+        - 🔧 リファクタリング
+        - 🛡️ 型安全性の改善
+        - 📋 その他
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: affected-areas
+    attributes:
+      label: 📂 影響範囲
+      description: 問題が発生しているファイルや機能を選択してください
+      options:
+        - label: "`lib/` (メインコード)"
+        - label: "`test/` (テストコード)"
+        - label: "`android/` (Android固有)"
+        - label: "`ios/` (iOS固有)"
+        - label: "設定ファイル"
+        - label: "その他"
+
+  - type: textarea
+    id: file-paths
+    attributes:
+      label: 📁 具体的なファイルパス
+      description: 問題が発生している具体的なファイルパスを記載してください
+      placeholder: |
+        例:
+        lib/services/database_service.dart
+        lib/views/home_screen.dart
+
+  - type: textarea
+    id: current-problem
+    attributes:
+      label: 🚨 現在の問題
+      description: 具体的な問題の詳細を記載してください
+      placeholder: "問題の詳細な説明をここに記載してください"
+    validations:
+      required: true
+
+  - type: textarea
+    id: error-messages
+    attributes:
+      label: ⚠️ エラーメッセージ/警告
+      description: エラーメッセージやリント警告があれば記載してください
+      placeholder: |
+        例:
+        warning: 'launch' is deprecated and shouldn't be used.
+        Use url_launcher_platform_interface methods instead.
+
+  - type: textarea
+    id: current-code
+    attributes:
+      label: 💻 問題のあるコード
+      description: 問題のあるコードがあれば記載してください
+      placeholder: |
+        ```dart
+        // 現在の問題のあるコード
+        ```
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: ✅ 期待される解決策
+      description: どのように修正すべきかの提案を記載してください
+      placeholder: "解決策の提案をここに記載してください"
+
+  - type: textarea
+    id: suggested-code
+    attributes:
+      label: 🔧 推奨される修正方法
+      description: 修正後のコード例があれば記載してください
+      placeholder: |
+        ```dart
+        // 修正後のコード例
+        ```
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 🎯 優先度
+      description: この問題の優先度はどの程度ですか？
+      options:
+        - 🔥 緊急 (ビルドエラー、セキュリティ問題)
+        - ⚡ 高 (非推奨API、重要な警告)
+        - 📋 中 (軽微な警告、コード改善)
+        - 💡 低 (リファクタリング、最適化)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: test-requirements
+    attributes:
+      label: 🧪 テスト要件
+      description: 修正後に必要なテストを選択してください
+      options:
+        - label: "既存のテストが通ること"
+        - label: "新しいテストケースの追加"
+        - label: "手動テストが必要"
+        - label: "パフォーマンステスト"
+        - label: "テスト不要"
+
+  - type: input
+    id: flutter-version
+    attributes:
+      label: 🐦 Flutter バージョン
+      description: 使用しているFlutterのバージョンを教えてください
+      placeholder: "例: 3.16.0"
+
+  - type: input
+    id: dart-version
+    attributes:
+      label: 🎯 Dart バージョン
+      description: 使用しているDartのバージョンを教えてください
+      placeholder: "例: 3.2.0"
+
+  - type: dropdown
+    id: development-environment
+    attributes:
+      label: 💻 開発環境
+      description: 使用している開発環境を教えてください
+      options:
+        - 🤖 Android Studio
+        - 🔷 VS Code
+        - 🐧 IntelliJ IDEA
+        - 📋 その他
+
+  - type: dropdown
+    id: operating-system
+    attributes:
+      label: 🖥️ OS
+      description: 使用しているOSを教えてください
+      options:
+        - 🪟 Windows
+        - 🍎 macOS
+        - 🐧 Linux
+
+  - type: textarea
+    id: reference-links
+    attributes:
+      label: 🔗 参考リンク
+      description: 関連するドキュメントやIssueのリンクがあれば記載してください
+      placeholder: |
+        例:
+        - Flutter公式ドキュメント: https://flutter.dev/docs
+        - 関連Issue: #123
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 📝 追加情報
+      description: その他、修正に役立つ情報があれば記載してください
+      placeholder: "追加の詳細情報をここに記載してください"
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: 📋 確認事項
+      description: 以下の項目を確認してください
+      options:
+        - label: 既存のIssueに同様の問題報告がないことを確認しました
+          required: true
+        - label: 最新の開発環境で問題が発生することを確認しました
+          required: true
+        - label: このIssueはコード品質向上を目的としています
+          required: true
