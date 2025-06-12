@@ -20,10 +20,12 @@
 ### ✨ 主な特徴
 
 - 🎨 **Material Design**に基づいた美しく直感的なUI
-- 📊 **リアルタイム分析**による詳細な財務レポート
-- 💾 **ローカルデータベース**によるプライバシー保護
-- 🔄 **バックアップ・復元**機能でデータ安全性を確保
-- 📱 **クロスプラットフォーム**対応（Android/iOS/Windows/macOS/Linux）
+- 📊 **リアルタイム分析**による詳細な財務レポート  
+- 💾 **完全ローカル保存**によるプライバシー保護
+- � **CSV インポート/エクスポート**でデータ移行が簡単
+- 🔄 **スワイプアクション**による直感的な編集・削除
+- 📱 **クロスプラットフォーム**対応（Android/iOS対応済み）
+- 🌟 **スプラッシュスクリーン**で洗練された起動体験
 
 ## 🚀 全機能一覧
 
@@ -39,9 +41,10 @@
 
 ### 📊 分析・レポート機能
 - **月次レポート**
-  - 支出内訳の円グラフ表示
+  - 支出内訳の棒グラフ表示（v1.2.2で円グラフから改善）
   - カテゴリ別支出ランキング
   - 月間収支サマリー
+  - 自動的に最新データ月を選択表示
 - **資産分析**
   - 収支トレンドの時系列グラフ
   - 貯蓄推移の可視化
@@ -62,10 +65,15 @@
   - 期間指定検索
   - カテゴリ別フィルタリング
   - 金額範囲指定
-- **データエクスポート**
-  - CSV形式でのデータ出力
+- **CSV インポート/エクスポート**（v1.2.2新機能）
+  - CSV形式でのデータ入出力
   - 期間別・カテゴリ別エクスポート
-  - 簡単な共有機能
+  - 他アプリからのデータ移行対応
+  - エラーハンドリングと検証機能
+- **スワイプアクション**（v1.2.2新機能）
+  - 収入・支出リストでのスワイプ編集
+  - スワイプ削除（確認ダイアログ付き）
+  - 直感的なデータ操作
 
 ### 💾 バックアップ・復元
 - **完全バックアップ**
@@ -78,10 +86,11 @@
   - 復元前のデータ完全性チェック
 
 ### 🎯 予算・目標管理
-- **予算設定**
-  - カテゴリ別月間予算
-  - 予算使用率の可視化
-  - 超過アラート機能
+- **リアルタイム予算管理**（v1.2.2で大幅改善）
+  - カテゴリ別月間予算設定
+  - リアルタイム予算使用率の可視化
+  - 即座に反映される予算超過アラート
+  - 予算設定の即時更新・反映
 - **目標設定**
   - 貯蓄目標の設定・追跡
   - 達成率の進捗表示
@@ -96,8 +105,10 @@
 - **外観設定**
   - ダークモード切り替え
   - Material Designテーマ
+  - スプラッシュスクリーン（v1.2.2新機能）
 - **データ管理**
   - 完全データ削除機能
+  - CSV インポート/エクスポート機能
   - 統計情報の表示
 - **アプリ情報**
   - バージョン情報
@@ -125,11 +136,12 @@
 - **FL Chart** - インタラクティブなグラフ表示
 
 ### 機能拡張
-- **flutter_local_notifications** - ローカル通知
+- **flutter_local_notifications** - ローカル通知（v1.2.2で改善）
 - **url_launcher** - 外部リンク起動
 - **package_info_plus** - アプリ情報取得
-- **share_plus** - ネイティブ共有機能
-- **csv** - CSVファイル生成
+- **share_plus** - ネイティブ共有機能（v1.2.2でiOS対応）
+- **csv** - CSVファイル生成・読み取り（v1.2.2で強化）
+- **file_picker** - CSVファイル選択（v1.2.2新機能）
 - **intl** - 国際化・日付フォーマット
 
 ## 📁 ファイル構成
@@ -143,9 +155,10 @@ lib/
 │   └── nisa_investment.dart    # NISA投資データモデル
 ├── services/                    # ビジネスロジック・サービス
 │   ├── database_service.dart   # データベース操作
-│   ├── notification_service.dart # 通知サービス
-│   ├── export_service.dart     # データエクスポート
-│   └── budget_service.dart     # 予算管理
+│   ├── notification_service.dart # 通知サービス（v1.2.2改善）
+│   ├── export_service.dart     # CSV エクスポート/インポート（v1.2.2強化）
+│   ├── budget_service.dart     # 予算管理（v1.2.2新規）
+│   └── alert_settings_service.dart # アラート設定（v1.2.2新規）
 ├── viewmodels/                  # MVVM ViewModel
 │   └── theme_viewmodel.dart    # テーマ状態管理
 ├── views/                       # 画面・UI
@@ -157,9 +170,12 @@ lib/
 │   ├── nisa_screen.dart        # NISA管理画面
 │   ├── setting_screen.dart     # 設定画面
 │   ├── help_screen.dart        # ヘルプ画面
-│   ├── budget_setting_screen.dart # 予算設定
+│   ├── budget_setting_screen.dart # 予算設定（v1.2.2改善）
+│   ├── budget_usage_screen.dart   # 予算使用状況（v1.2.2新規）
+│   ├── csv_import_screen.dart     # CSV インポート（v1.2.2新規）
+│   ├── csv_export_screen.dart     # CSV エクスポート（v1.2.2新規）
 │   ├── expense_search_screen.dart # 検索画面
-│   └── splash_screen.dart      # スプラッシュ画面
+│   └── splash_screen.dart      # スプラッシュ画面（v1.2.2新規）
 ├── widgets/                     # 再利用可能なウィジェット
 │   ├── expense_form.dart       # 支出入力フォーム
 │   ├── income_form.dart        # 収入入力フォーム
@@ -224,8 +240,12 @@ minSdkVersion 21
 targetSdkVersion 34
 ```
 
-### iOS設定 (将来対応予定)
-`ios/Runner/Info.plist`での設定が必要になります。
+### iOS設定（v1.2.2対応済み）
+詳細なiOS設定については [iOS版インストールガイド](release/ios/INSTALL_iOS.md) をご確認ください。
+`ios/Runner/Info.plist`に必要な権限設定が含まれています：
+- ファイルアクセス権限（CSV機能用）
+- 通知権限
+- ユーザーインターフェース設定
 
 ### 通知設定
 アプリ初回起動時に通知権限の許可が求められます。
@@ -298,17 +318,66 @@ flutter build linux --release
 
 ## 🐛 既知の問題・制限事項
 
-- iOS版は現在開発中です
+現在、既知の重大な問題はありません。v1.2.2で主要なバグが修正されました：
+- ✅ 予算設定が即座に反映されない問題を修正
+- ✅ 通知API の非推奨警告を解決
+- ✅ iOS版の安定性向上
 - 一部のデスクトップ環境では通知機能に制限があります
-- 大量データでのパフォーマンス最適化が必要な場合があります
 
-## 📞 サポート・お問い合わせ
+## � ダウンロード
+
+### 🎯 最新リリース: v1.2.2
+
+#### 🤖 Android版
+- **APK**: [MoneyG-Android-v1.2.2.apk](https://github.com/paraccoli/flutter_finance_app/releases/download/v1.2.2/MoneyG-Android-v1.2.2.apk)
+- **要件**: Android 5.0 (API 21) 以上
+
+#### 🍎 iOS版
+- **ソースコード**: [MoneyG-iOS-v1.2.2.zip](https://github.com/paraccoli/flutter_finance_app/releases/download/v1.2.2/MoneyG-iOS-v1.2.2.zip)
+- **要件**: iOS 13.0 以上
+- **インストール**: [iOS版インストールガイド](release/ios/INSTALL_iOS.md)
+
+#### 📋 全リリース
+すべてのリリースは [GitHub Releases](https://github.com/paraccoli/flutter_finance_app/releases) で確認できます。
+
+---
+
+## �📞 サポート・お問い合わせ
 
 - **GitHub Issues**: [Issues ページ](https://github.com/paraccoli/flutter_finance_app/issues)
+- **GitHub Discussions**: [コミュニティ](https://github.com/paraccoli/flutter_finance_app/discussions)
 - **開発者Twitter**: [@paraccoli](https://twitter.com/paraccoli)
 - **プライバシーポリシー**: [PRIVACY.md](PRIVACY.md)
+- **セキュリティポリシー**: [SECURITY.md](SECURITY.md)
+- **コントリビューションガイド**: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 📝 更新履歴
+
+### バージョン 1.2.2 (2025-06-12) 🎉
+**iOS版初回リリース & Android版重要更新**
+
+#### 🍎 iOS版新機能
+- ✨ iOS 13.0以上完全対応
+- 📱 iOS専用UI最適化
+- 🔔 iOS通知システム統合
+- 📤 iOSネイティブ共有機能
+
+#### 🆕 新機能（全プラットフォーム）
+- ✨ **CSV インポート/エクスポート**: 他アプリからのデータ移行対応
+- 🌟 **スプラッシュスクリーン**: アプリ起動体験の向上
+- 👆 **スワイプアクション**: 収入・支出リストでのスワイプ編集・削除
+- 📊 **月次レポート改善**: 円グラフから棒グラフに変更、自動月選択
+
+#### 🔧 改善・修正
+- 🐛 **予算設定リアルタイム反映**: 設定変更が即座に反映されるよう修正
+- 🔔 **通知API更新**: 非推奨API使用の警告を解決
+- 📈 **fl_chart 1.0.0**: 最新チャートライブラリに更新
+- 🛡️ **セキュリティ強化**: ローカル保存のセキュリティ向上
+
+#### 📚 ドキュメント
+- 📖 **包括的ドキュメント**: README、CONTRIBUTING、SECURITY
+- 🍎 **iOS専用ガイド**: インストール・機能・リリースノート
+- 🎯 **GitHub Projects**: プロジェクト管理体系の構築
 
 ### バージョン 1.1.0 (2025-06-08)
 - 🎉 iOS機能の削除とMaterial Design統一
