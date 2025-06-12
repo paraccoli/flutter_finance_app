@@ -324,7 +324,7 @@ flutter build linux --release
 - ✅ iOS版の安定性向上
 - 一部のデスクトップ環境では通知機能に制限があります
 
-## � ダウンロード
+## ダウンロード
 
 ### 🎯 最新リリース: v1.2.2
 
@@ -342,7 +342,7 @@ flutter build linux --release
 
 ---
 
-## �📞 サポート・お問い合わせ
+## 📞 サポート・お問い合わせ
 
 - **GitHub Issues**: [Issues ページ](https://github.com/paraccoli/flutter_finance_app/issues)
 - **GitHub Discussions**: [コミュニティ](https://github.com/paraccoli/flutter_finance_app/discussions)
