@@ -329,7 +329,7 @@ flutter build linux --release
 ### 🎯 最新リリース: v1.2.2
 
 #### 🤖 Android版
-- **APK**: [MoneyG-Android-v1.2.2.apk](https://github.com/paraccoli/flutter_finance_app/releases/download/v1.2.2/MoneyG-Android-v1.2.2.apk)
+- **APK**: [MoneyG-Android-v1.2.2.zip](https://github.com/paraccoli/flutter_finance_app/releases/download/v1.2.2/MoneyG-Android-v1.2.2.zip)
 - **要件**: Android 5.0 (API 21) 以上
 
 #### 🍎 iOS版
