@@ -17,8 +17,30 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
   @override
   void initState() {
     super.initState();
-    _categoryBudgets = BudgetService.getCategoryBudgets();
-    _monthlyBudget = BudgetService.getMonthlyBudget();
+    _loadBudgetSettings();
+  }
+
+  Future<void> _loadBudgetSettings() async {
+    await BudgetService.initialize();
+    _categoryBudgets = BudgetService.getCategoryBudgetsSync();
+    _monthlyBudget = BudgetService.getMonthlyBudgetSync();
+    setState(() {});
+  }
+
+  // カテゴリ別予算の合計を計算
+  double _calculateTotalCategoryBudgets() {
+    return _categoryBudgets.values.fold(0.0, (sum, budget) => sum + budget);
+  }
+
+  // カテゴリ予算変更時の処理（常に自動計算）
+  void _onCategoryBudgetChanged(ExpenseCategory category, double amount) {
+    setState(() {
+      _categoryBudgets[category] = amount;
+      _monthlyBudget = _calculateTotalCategoryBudgets();
+    });
+    // リアルタイム保存
+    BudgetService.setCategoryBudget(category, amount);
+    BudgetService.setMonthlyBudget(_monthlyBudget);
   }
 
   @override
@@ -49,22 +71,61 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
                     '💰 月次総予算',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: _monthlyBudget.toStringAsFixed(0),
-                    decoration: const InputDecoration(
-                      labelText: '月次総予算',
-                      suffixText: '円',
-                      border: OutlineInputBorder(),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
                     ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onChanged: (value) {
-                      final amount = double.tryParse(value) ?? 0;
-                      setState(() {
-                        _monthlyBudget = amount;
-                      });
-                    },
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: Colors.blue.shade700,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'カテゴリ別予算の合計が自動で計算されます',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calculate, color: Colors.green),
+                        const SizedBox(width: 12),
+                        const Text(
+                          '月次総予算:',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '¥${_monthlyBudget.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -84,8 +145,8 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  ...ExpenseCategory.values.map((category) => 
-                    _buildCategoryBudgetItem(category),
+                  ...ExpenseCategory.values.map(
+                    (category) => _buildCategoryBudgetItem(category),
                   ),
                 ],
               ),
@@ -120,7 +181,10 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
                     onTap: () => _applyTemplate(_getTemplateCouple()),
                   ),
                   ListTile(
-                    leading: const Icon(Icons.family_restroom, color: Colors.orange),
+                    leading: const Icon(
+                      Icons.family_restroom,
+                      color: Colors.orange,
+                    ),
                     title: const Text('家族（4人）'),
                     subtitle: const Text('月35万円'),
                     trailing: const Icon(Icons.arrow_forward_ios),
@@ -144,26 +208,28 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
         children: [
           Icon(category.icon, color: category.color, size: 24),
           const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: Text(category.displayName),
-          ),
+          Expanded(flex: 2, child: Text(category.displayName)),
           Expanded(
             flex: 3,
             child: TextFormField(
-              initialValue: _categoryBudgets[category]?.toStringAsFixed(0) ?? '0',
+              key: ValueKey(
+                '${category.name}_${_categoryBudgets[category]}',
+              ), // キーを追加
+              initialValue:
+                  _categoryBudgets[category]?.toStringAsFixed(0) ?? '0',
               decoration: const InputDecoration(
                 suffixText: '円',
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               onChanged: (value) {
                 final amount = double.tryParse(value) ?? 0;
-                setState(() {
-                  _categoryBudgets[category] = amount;
-                });
+                _onCategoryBudgetChanged(category, amount);
               },
             ),
           ),
@@ -230,11 +296,21 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
               Navigator.pop(context);
               setState(() {
                 _categoryBudgets = Map.from(template);
-                _monthlyBudget = template.values.fold(0, (sum, budget) => sum + budget);
+                _monthlyBudget = _calculateTotalCategoryBudgets();
               });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('テンプレートを適用しました')),
-              );
+
+              // リアルタイム保存
+              for (final category in ExpenseCategory.values) {
+                BudgetService.setCategoryBudget(
+                  category,
+                  _categoryBudgets[category] ?? 0,
+                );
+              }
+              BudgetService.setMonthlyBudget(_monthlyBudget);
+
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('テンプレートを適用しました')));
             },
             child: const Text('適用'),
           ),
@@ -244,9 +320,12 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
   }
 
   void _saveSettings() {
-    // 予算設定を保存
+    // 最終保存（リアルタイム保存をしているので基本的には同期済み）
     for (final category in ExpenseCategory.values) {
-      BudgetService.setCategoryBudget(category, _categoryBudgets[category] ?? 0);
+      BudgetService.setCategoryBudget(
+        category,
+        _categoryBudgets[category] ?? 0,
+      );
     }
     BudgetService.setMonthlyBudget(_monthlyBudget);
 
@@ -256,6 +335,6 @@ class _BudgetSettingScreenState extends State<BudgetSettingScreen> {
         backgroundColor: Colors.green,
       ),
     );
-    Navigator.pop(context);
+    Navigator.pop(context, true); // 更新フラグを返す
   }
 }

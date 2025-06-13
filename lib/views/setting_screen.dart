@@ -7,10 +7,13 @@ import '../viewmodels/theme_viewmodel.dart';
 import '../services/notification_service.dart';
 import '../services/export_service.dart';
 import '../services/database_service.dart';
+import '../services/budget_service.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
+import 'budget_usage_screen.dart';
 import 'expense_search_screen.dart';
 import 'csv_import_screen.dart';
+import 'splash_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -23,19 +26,23 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _notificationEnabled = true;
   String _notificationTime = '21:00';
   final NotificationService _notificationService = NotificationService();
-  
+
   String _appVersion = '';
-  String _appName = '';
-    // 統計情報
+  String _appName = ''; // 統計情報
   int _totalExpenses = 0;
   int _totalIncomes = 0;
   int _totalNisaInvestments = 0;
+
+  // 予算管理関連
+  bool _budgetAlertEnabled = true;
+
   @override
   void initState() {
     super.initState();
     _loadNotificationSettings();
     _loadAppInfo();
     _loadStatistics();
+    _loadBudgetSettings();
   }
 
   Future<void> _loadNotificationSettings() async {
@@ -54,34 +61,48 @@ class _SettingScreenState extends State<SettingScreen> {
       _appVersion = packageInfo.version;
     });
   }
+
+  Future<void> _loadBudgetSettings() async {
+    await BudgetService.initialize();
+    setState(() {
+      _budgetAlertEnabled = BudgetService.isBudgetAlertEnabledSync();
+    });
+  }
+
   Future<void> _loadStatistics() async {
     try {
       final db = DatabaseService();
-      
+
       // 支出データ数を取得
       final expenseCount = await db.database.then((database) async {
-        final result = await database.rawQuery('SELECT COUNT(*) as count FROM expenses');
+        final result = await database.rawQuery(
+          'SELECT COUNT(*) as count FROM expenses',
+        );
         return result.first['count'] as int;
       });
-      
+
       // 収入データ数を取得
       final incomeCount = await db.database.then((database) async {
-        final result = await database.rawQuery('SELECT COUNT(*) as count FROM incomes');
+        final result = await database.rawQuery(
+          'SELECT COUNT(*) as count FROM incomes',
+        );
         return result.first['count'] as int;
       });
-      
+
       // NISA投資データ数を取得
       final nisaCount = await db.database.then((database) async {
-        final result = await database.rawQuery('SELECT COUNT(*) as count FROM nisa_investments');
+        final result = await database.rawQuery(
+          'SELECT COUNT(*) as count FROM nisa_investments',
+        );
         return result.first['count'] as int;
       });
-        setState(() {
+      setState(() {
         _totalExpenses = expenseCount;
         _totalIncomes = incomeCount;
         _totalNisaInvestments = nisaCount; // NISAデータ数として表示
       });
     } catch (e) {
-      debugPrint('統計情報の取得に失敗しました: $e');      // エラー時はデフォルト値を設定
+      debugPrint('統計情報の取得に失敗しました: $e'); // エラー時はデフォルト値を設定
       setState(() {
         _totalExpenses = 0;
         _totalIncomes = 0;
@@ -109,7 +130,8 @@ class _SettingScreenState extends State<SettingScreen> {
           children: [
             // 外観設定
             _buildSectionTitle('外観設定', isDark),
-            const SizedBox(height: 16),            _buildCard(
+            const SizedBox(height: 16),
+            _buildCard(
               isDark,
               Column(
                 children: [
@@ -163,7 +185,8 @@ class _SettingScreenState extends State<SettingScreen> {
                     ),
                   ],
                 ],
-              ),            ),
+              ),
+            ),
             const SizedBox(height: 24),
 
             // 予算管理
@@ -174,13 +197,18 @@ class _SettingScreenState extends State<SettingScreen> {
               Column(
                 children: [
                   ListTile(
-                    leading: const Icon(Icons.account_balance_wallet, color: Colors.green),
+                    leading: const Icon(
+                      Icons.account_balance_wallet,
+                      color: Colors.green,
+                    ),
                     title: const Text('予算設定'),
                     subtitle: const Text('月次予算とカテゴリ別予算の設定'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const BudgetSettingScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const BudgetSettingScreen(),
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
@@ -189,18 +217,32 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('予算使用状況'),
                     subtitle: const Text('今月の予算消化率を確認'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _showBudgetUsageDialog(),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BudgetUsageScreen(),
+                      ),
+                    ),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.notifications_active, color: Colors.orange),
+                    leading: const Icon(
+                      Icons.notifications_active,
+                      color: Colors.orange,
+                    ),
                     title: const Text('予算アラート'),
                     subtitle: const Text('予算超過時の通知設定'),
                     trailing: Switch(
-                      value: true, // TODO: 実際の設定値を取得
+                      value: _budgetAlertEnabled,
                       onChanged: (value) {
+                        setState(() {
+                          _budgetAlertEnabled = value;
+                        });
+                        BudgetService.setBudgetAlertEnabled(value);
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('予算アラートを${value ? '有効' : '無効'}にしました')),
+                          SnackBar(
+                            content: Text('予算アラートを${value ? '有効' : '無効'}にしました'),
+                          ),
                         );
                       },
                     ),
@@ -220,18 +262,40 @@ class _SettingScreenState extends State<SettingScreen> {
                   ListTile(
                     leading: const Icon(Icons.trending_down, color: Colors.red),
                     title: const Text('支出記録数'),
-                    trailing: Text('$_totalExpenses件', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    trailing: Text(
+                      '$_totalExpenses件',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.trending_up, color: Colors.green),
                     title: const Text('収入記録数'),
-                    trailing: Text('$_totalIncomes件', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    trailing: Text(
+                      '$_totalIncomes件',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  const Divider(height: 1),                  ListTile(
-                    leading: const Icon(Icons.account_balance, color: Colors.blue),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.account_balance,
+                      color: Colors.blue,
+                    ),
                     title: const Text('NISA投資記録数'),
-                    trailing: Text('$_totalNisaInvestments件', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    trailing: Text(
+                      '$_totalNisaInvestments件',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -240,10 +304,12 @@ class _SettingScreenState extends State<SettingScreen> {
 
             // データ管理セクション
             _buildSectionTitle('データ管理', isDark),
-            const SizedBox(height: 16),            _buildCard(
+            const SizedBox(height: 16),
+            _buildCard(
               isDark,
               Column(
-                children: [                  ListTile(
+                children: [
+                  ListTile(
                     leading: const Icon(Icons.search),
                     title: const Text('支出・収入の検索'),
                     subtitle: const Text('条件を指定してデータを検索'),
@@ -284,8 +350,14 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: const Icon(Icons.delete_forever, color: Colors.red),
-                    title: const Text('すべてのデータを削除', style: TextStyle(color: Colors.red)),
+                    leading: const Icon(
+                      Icons.delete_forever,
+                      color: Colors.red,
+                    ),
+                    title: const Text(
+                      'すべてのデータを削除',
+                      style: TextStyle(color: Colors.red),
+                    ),
                     subtitle: const Text('すべての記録を完全に削除します'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => _showDeleteAllDataDialog(),
@@ -309,7 +381,9 @@ class _SettingScreenState extends State<SettingScreen> {
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const HelpScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const HelpScreen(),
+                      ),
                     ),
                   ),
                   const Divider(height: 1),
@@ -326,7 +400,9 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('フィードバック'),
                     subtitle: const Text('改善要望やバグ報告'),
                     trailing: const Icon(Icons.open_in_new),
-                    onTap: () => _launchUrl('https://github.com/paraccoli/flutter_finance_app/issues'),
+                    onTap: () => _launchUrl(
+                      'https://github.com/paraccoli/flutter_finance_app/issues',
+                    ),
                   ),
                 ],
               ),
@@ -367,7 +443,9 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('バグ報告・要望'),
                     subtitle: const Text('GitHubでissueを作成'),
                     trailing: const Icon(Icons.open_in_new),
-                    onTap: () => _launchUrl('https://github.com/paraccoli/flutter_finance_app/issues'),
+                    onTap: () => _launchUrl(
+                      'https://github.com/paraccoli/flutter_finance_app/issues',
+                    ),
                   ),
                 ],
               ),
@@ -376,7 +454,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
             // アプリ情報
             _buildSectionTitle('アプリ情報', isDark),
-            const SizedBox(height: 16),            _buildCard(
+            const SizedBox(height: 16),
+            _buildCard(
               isDark,
               Column(
                 children: [
@@ -389,7 +468,9 @@ class _SettingScreenState extends State<SettingScreen> {
                   ListTile(
                     leading: const Icon(Icons.update),
                     title: const Text('バージョン'),
-                    subtitle: Text(_appVersion.isNotEmpty ? _appVersion : '1.0.0'),
+                    subtitle: Text(
+                      _appVersion.isNotEmpty ? _appVersion : '1.0.0',
+                    ),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -397,7 +478,9 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('アプリを評価'),
                     subtitle: const Text('Google Playでアプリを評価してください'),
                     trailing: const Icon(Icons.open_in_new),
-                    onTap: () => _launchUrl('https://play.google.com/store/apps/details?id=com.moneyg.finance_app'),
+                    onTap: () => _launchUrl(
+                      'https://play.google.com/store/apps/details?id=com.moneyg.finance_app',
+                    ),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -413,7 +496,9 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('プライバシーポリシー'),
                     subtitle: const Text('データの取り扱いについて'),
                     trailing: const Icon(Icons.open_in_new),
-                    onTap: () => _launchUrl('https://github.com/paraccoli/flutter_finance_app/blob/main/PRIVACY.md'),
+                    onTap: () => _launchUrl(
+                      'https://github.com/paraccoli/flutter_finance_app/blob/main/PRIVACY.md',
+                    ),
                   ),
                 ],
               ),
@@ -454,12 +539,13 @@ class _SettingScreenState extends State<SettingScreen> {
     );
 
     if (picked != null) {
-      final timeString = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      final timeString =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       setState(() {
         _notificationTime = timeString;
       });
       await _notificationService.setNotificationTime(timeString);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('通知時間を $_notificationTime に設定しました')),
@@ -471,12 +557,12 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _sendTestNotification() async {
     await _notificationService.sendTestNotification();
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('テスト通知を送信しました')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('テスト通知を送信しました')));
     }
   }
-  
+
   // データ削除ダイアログの表示
   void _showDeleteAllDataDialog() {
     showDialog(
@@ -598,24 +684,20 @@ class _SettingScreenState extends State<SettingScreen> {
 
     try {
       await DatabaseService().deleteAllData();
-      
+
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('すべてのデータが削除されました'),
-            backgroundColor: Colors.green,
-          ),
+
+        // スプラッシュスクリーンを経由してホーム画面に戻る
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const SplashScreen()),
+          (route) => false,
         );
-        
-        // 統計情報を更新
-        _loadStatistics();
       }
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('データ削除に失敗しました: $e'),
@@ -632,16 +714,16 @@ class _SettingScreenState extends State<SettingScreen> {
       final Uri uri = Uri.parse(url);
       if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('URLを開けませんでした: $url')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('URLを開けませんでした: $url')));
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('URLの形式が正しくありません')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('URLの形式が正しくありません')));
       }
     }
   }
@@ -649,9 +731,9 @@ class _SettingScreenState extends State<SettingScreen> {
   // アプリシェアメソッド
   void _shareApp() {
     // TODO: share_plus パッケージを使用してアプリをシェア
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('シェア機能は近日実装予定です')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('シェア機能は近日実装予定です')));
   }
 
   // バックアップダイアログの表示
@@ -737,16 +819,16 @@ class _SettingScreenState extends State<SettingScreen> {
 
     try {
       final filePath = await DatabaseService().createBackup();
-      
+
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
+
         _showBackupSuccessDialog(filePath);
       }
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('バックアップ作成に失敗しました: $e'),
@@ -760,7 +842,7 @@ class _SettingScreenState extends State<SettingScreen> {
   // バックアップ成功ダイアログ
   void _showBackupSuccessDialog(String filePath) {
     final fileName = filePath.split(Platform.pathSeparator).last;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -880,10 +962,10 @@ class _SettingScreenState extends State<SettingScreen> {
 
     try {
       final backupFiles = await DatabaseService().getAvailableBackups();
-      
+
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
+
         if (backupFiles.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -893,13 +975,13 @@ class _SettingScreenState extends State<SettingScreen> {
           );
           return;
         }
-        
+
         _showBackupListDialog(backupFiles);
       }
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('バックアップファイルの検索に失敗しました: $e'),
@@ -930,7 +1012,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     .replaceAll('.json', '')
                     .replaceAll('-', ':')
                     .replaceAll('T', ' ');
-                
+
                 return Card(
                   child: ListTile(
                     leading: const Icon(Icons.backup, color: Colors.blue),
@@ -942,7 +1024,10 @@ class _SettingScreenState extends State<SettingScreen> {
                       future: DatabaseService().getBackupInfo(filePath),
                       builder: (context, snapshot) {
                         if (snapshot.hasData && snapshot.data != null) {
-                          final stats = snapshot.data!['statistics'] as Map<String, dynamic>? ?? {};
+                          final stats =
+                              snapshot.data!['statistics']
+                                  as Map<String, dynamic>? ??
+                              {};
                           return Text(
                             '支出: ${stats['total_expenses'] ?? 0}件, '
                             '収入: ${stats['total_incomes'] ?? 0}件, '
@@ -976,7 +1061,7 @@ class _SettingScreenState extends State<SettingScreen> {
   // 復元確認ダイアログ
   void _confirmRestore(String filePath) {
     final fileName = filePath.split(Platform.pathSeparator).last;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -988,7 +1073,10 @@ class _SettingScreenState extends State<SettingScreen> {
             children: [
               const Text(
                 '⚠️ 現在のデータがすべて削除され、以下のバックアップで置き換えられます：',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
               ),
               const SizedBox(height: 8),
               Text('📁 $fileName'),
@@ -1042,24 +1130,20 @@ class _SettingScreenState extends State<SettingScreen> {
 
     try {
       await DatabaseService().restoreFromBackup(filePath);
-      
+
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('データの復元が完了しました'),
-            backgroundColor: Colors.green,
-          ),
+
+        // スプラッシュスクリーンを経由してホーム画面に戻る
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const SplashScreen()),
+          (route) => false,
         );
-        
-        // 統計情報を更新
-        _loadStatistics();
       }
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // プログレスダイアログを閉じる
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('データ復元に失敗しました: $e'),
@@ -1081,7 +1165,10 @@ class _SettingScreenState extends State<SettingScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('💰 支出・収入の記録', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(
+                '💰 支出・収入の記録',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Text('下部のタブから金額とカテゴリを選択して記録'),
               SizedBox(height: 12),
               Text('📊 月次レポート', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -1118,64 +1205,6 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  // 予算使用状況ダイアログ
-  void _showBudgetUsageDialog() {
-    // TODO: 実際の支出データから使用状況を計算
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('📊 今月の予算使用状況'),
-        content: const SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 全体の使用率
-              LinearProgressIndicator(
-                value: 0.65,
-                backgroundColor: Colors.grey,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-              ),
-              SizedBox(height: 8),
-              Text('全体: 65% (195,000円 / 300,000円)', style: TextStyle(fontWeight: FontWeight.bold)),
-              SizedBox(height: 16),
-              
-              // カテゴリ別使用率（サンプル）
-              Text('🍽️ 食費: 78% (39,000円 / 50,000円)'),
-              LinearProgressIndicator(value: 0.78, valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)),
-              SizedBox(height: 8),
-              
-              Text('🚌 交通費: 45% (9,000円 / 20,000円)'),
-              LinearProgressIndicator(value: 0.45, valueColor: AlwaysStoppedAnimation<Color>(Colors.green)),
-              SizedBox(height: 8),
-              
-              Text('🎮 娯楽: 90% (27,000円 / 30,000円)'),
-              LinearProgressIndicator(value: 0.90, valueColor: AlwaysStoppedAnimation<Color>(Colors.red)),
-              SizedBox(height: 8),
-              
-              Text('🏠 家賃: 100% (80,000円 / 80,000円)'),
-              LinearProgressIndicator(value: 1.0, valueColor: AlwaysStoppedAnimation<Color>(Colors.blue)),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('閉じる'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const BudgetSettingScreen()),
-              );
-            },
-            child: const Text('予算設定'),
-          ),
-        ],
-      ),
-    );
-  }
   // データ管理  // 支出検索画面への遷移
   void _navigateToExpenseSearch() {
     Navigator.push(
@@ -1235,15 +1264,15 @@ class _SettingScreenState extends State<SettingScreen> {
     try {
       await ExportService.exportExpensesToCsv();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('支出データをエクスポートしました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('支出データをエクスポートしました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エクスポートに失敗しました: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
       }
     }
   }
@@ -1253,33 +1282,32 @@ class _SettingScreenState extends State<SettingScreen> {
     try {
       await ExportService.exportIncomesToCsv();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('収入データをエクスポートしました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('収入データをエクスポートしました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エクスポートに失敗しました: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
       }
     }
-  }
+  } // 全データのエクスポート
 
-  // 全データのエクスポート
   Future<void> _exportAllData() async {
     try {
       await ExportService.exportAllDataToCsv();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('全データをエクスポートしました')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('全データをエクスポートしました')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エクスポートに失敗しました: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
       }
     }
   }
