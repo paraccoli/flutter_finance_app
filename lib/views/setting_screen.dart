@@ -8,12 +8,16 @@ import '../services/notification_service.dart';
 import '../services/export_service.dart';
 import '../services/database_service.dart';
 import '../services/budget_service.dart';
+import '../utils/app_theme.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
 import 'budget_usage_screen.dart';
 import 'expense_search_screen.dart';
 import 'csv_import_screen.dart';
 import 'splash_screen.dart';
+import 'theme_selection_screen.dart';
+import 'custom_theme_creator_screen.dart';
+import 'custom_theme_manager_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -110,13 +114,13 @@ class _SettingScreenState extends State<SettingScreen> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    final themeViewModel = Provider.of<ThemeViewModel>(context);
-    final isDark = themeViewModel.isDarkMode;
-
-    return Scaffold(
+    final themeViewModel = Provider.of<ThemeViewModel>(context);    final isDark = themeViewModel.isDarkMode || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic ||
+        themeViewModel.currentTheme == AppThemeType.cosmos;return Scaffold(
+      backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : null,
       appBar: AppBar(
         title: const Text('設定'),
         backgroundColor: isDark ? Colors.grey[900] : Colors.white,
@@ -130,19 +134,51 @@ class _SettingScreenState extends State<SettingScreen> {
           children: [
             // 外観設定
             _buildSectionTitle('外観設定', isDark),
-            const SizedBox(height: 16),
-            _buildCard(
+            const SizedBox(height: 16),            _buildCard(
               isDark,
               Column(
                 children: [
-                  SwitchListTile(
-                    title: const Text('ダークモード'),
-                    subtitle: const Text('暗いテーマを使用する'),
-                    value: themeViewModel.isDarkMode,
-                    onChanged: (value) {
-                      themeViewModel.setDarkMode(value);
+                  ListTile(
+                    title: const Text('テーマ'),
+                    subtitle: Text(AppTheme.themeInfos[themeViewModel.currentTheme]?.name ?? 'ライト'),
+                    leading: Icon(AppTheme.themeInfos[themeViewModel.currentTheme]?.icon ?? Icons.light_mode),
+                    trailing: const Icon(Icons.arrow_forward_ios),                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ThemeSelectionScreen(),
+                        ),
+                      );
+                    },                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: const Text('カスタムテーマ作成'),
+                    subtitle: const Text('自分好みのテーマを作成'),
+                    leading: const Icon(Icons.palette),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CustomThemeCreatorScreen(),
+                        ),
+                      );
                     },
-                    activeColor: Colors.blue,
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: const Text('カスタムテーマ管理'),
+                    subtitle: const Text('作成したテーマの編集・削除'),
+                    leading: const Icon(Icons.manage_accounts),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CustomThemeManagerScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -509,22 +545,30 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
-
   Widget _buildSectionTitle(String title, bool isDark) {
+    final themeViewModel = Provider.of<ThemeViewModel>(context, listen: false);
+    final shouldBeDark = isDark || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic;
+        
     return Text(
       title,
       style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: isDark ? Colors.white : Colors.black,
+        color: shouldBeDark ? Colors.white : Colors.black,
       ),
     );
   }
-
   Widget _buildCard(bool isDark, Widget child) {
+    final themeViewModel = Provider.of<ThemeViewModel>(context, listen: false);
+    final shouldBeDark = isDark || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic;
+        
     return Card(
       elevation: 2,
-      color: isDark ? Colors.grey[800] : Colors.white,
+      color: shouldBeDark ? Colors.grey[800] : Colors.white,
       child: child,
     );
   }

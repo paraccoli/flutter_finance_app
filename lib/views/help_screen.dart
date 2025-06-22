@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../viewmodels/theme_viewmodel.dart';
+import '../utils/app_theme.dart';
 
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final themeViewModel = Provider.of<ThemeViewModel>(context);    final isDark = themeViewModel.isDarkMode || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic ||
+        themeViewModel.currentTheme == AppThemeType.cosmos;
+        
     return Scaffold(
+      backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : null,
       appBar: AppBar(
         title: const Text('ヘルプ'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? Theme.of(context).appBarTheme.backgroundColor : Colors.blue,
+        foregroundColor: isDark ? Theme.of(context).appBarTheme.foregroundColor : Colors.white,
       ),
       body: ListView(
         children: [
