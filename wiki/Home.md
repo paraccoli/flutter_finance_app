@@ -41,28 +41,28 @@ MoneyG Finance Appは、**プライバシーを最優先**に設計された個�
 
 | カテゴリ | 内容 | 対象者 |
 |---------|------|--------|
-| **[アーキテクチャ](Architecture)** | システム設計、データフロー | 開発者 |
-| **[API リファレンス](API-Reference)** | 内部API、メソッド仕様 | 開発者 |
-| **[開発環境セットアップ](Development-Setup)** | 環境構築、ツール設定 | 新規開発者 |
-| **[コーディング規約](Coding-Standards)** | スタイルガイド、ベストプラクティス | 全開発者 |
+| **[アーキテクチャ](Architecture.md)** | システム設計、データフロー | 開発者 |
+| **[API リファレンス](API-Reference.md)** | 内部API、メソッド仕様 | 開発者 |
+| **[開発環境セットアップ](Development-Setup.md)** | 環境構築、ツール設定 | 新規開発者 |
+| **[コーディング規約](Coding-Standards.md)** | スタイルガイド、ベストプラクティス | 全開発者 |
 
 ### 📖 ユーザー向け
 
 | カテゴリ | 内容 | 対象者 |
 |---------|------|--------|
-| **[ユーザーガイド](User-Guide)** | 使い方、機能説明 | エンドユーザー |
-| **[FAQ](FAQ)** | よくある質問と回答 | 全ユーザー |
-| **[トラブルシューティング](Troubleshooting)** | 問題解決方法 | ユーザー・開発者 |
-| **[インストールガイド](Installation-Guide)** | アプリのインストール方法 | 新規ユーザー |
+| **[ユーザーガイド](User-Guide.md)** | 使い方、機能説明 | エンドユーザー |
+| **[FAQ](FAQ.md)** | よくある質問と回答 | 全ユーザー |
+| **[トラブルシューティング](Troubleshooting.md)** | 問題解決方法 | ユーザー・開発者 |
+| **[インストールガイド](Installation-Guide.md)** | アプリのインストール方法 | 新規ユーザー |
 
 ### 🛣️ プロジェクト管理
 
 | カテゴリ | 内容 | 対象者 |
 |---------|------|--------|
-| **[ロードマップ](Roadmap)** | 開発計画、将来展望 | 全関係者 |
-| **[リリースノート](Release-Notes)** | バージョン履歴、変更点 | 全ユーザー |
-| **[マイルストーン](Milestones)** | 開発目標、進捗状況 | 開発チーム |
-| **[貢献ガイド](Contributing)** | コントリビューション方法 | コントリビューター |
+| **[ロードマップ](Roadmap.md)** | 開発計画、将来展望 | 全関係者 |
+| **[リリースノート](Release-Notes.md)** | バージョン履歴、変更点 | 全ユーザー |
+| **[マイルストーン](Milestones.md)** | 開発目標、進捗状況 | 開発チーム |
+| **[貢献ガイド](Contributing.md)** | コントリビューション方法 | コントリビューター |
 
 ---
 
@@ -80,16 +80,12 @@ MoneyG Finance Appは、**プライバシーを最優先**に設計された個�
 - ✅ 資産分析
 - ✅ CSV インポート・エクスポート
 - ✅ NISA投資記録
-- ✅ 🎨 **テーマカスタマイズ** (v1.3.0)
-- ✅ 9つのプリセットテーマ (v1.3.0)
-- ✅ カスタムテーマ作成機能 (v1.3.0)
 
 #### 🚧 開発中の機能
-
-- 🔄 iOS版リリース
-- 🔄 Web版対応
-- 🔄 テーマ共有機能
-- 🔄 多言語対応拡張
+- 🔄 カテゴリカスタマイズ
+- 🔄 UI/UX改善
+- 🔄 パフォーマンス最適化
+- 🔄 多言語対応
 
 ### 📈 技術指標
 
@@ -109,7 +105,6 @@ MoneyG Finance Appは、**プライバシーを最優先**に設計された個�
 MoneyG Finance Appは、オープンソースプロジェクトとしてコミュニティの貢献を歓迎しています！
 
 #### 🌟 貢献方法
-
 - 🐛 **バグ報告**: [Issues](https://github.com/paraccoli/flutter_finance_app/issues)
 - 🔧 **コード貢献**: [Pull Requests](https://github.com/paraccoli/flutter_finance_app/pulls)
 - 📚 **ドキュメント**: Wiki・README改善
@@ -135,7 +130,7 @@ MoneyG Finance Appは、オープンソースプロジェクトとしてコミ�
 
 ### 🔗 関連リンク
 
-- **メインリポジトリ**: [GitHub](https://github.com/paraccoli/flutter_finance_app)
+- **メインリポジトリ**: https://github.com/paraccoli/flutter_finance_app
 - **プライバシーポリシー**: [PRIVACY.md](https://github.com/paraccoli/flutter_finance_app/blob/main/PRIVACY.md)
 - **セキュリティポリシー**: [SECURITY.md](https://github.com/paraccoli/flutter_finance_app/blob/main/SECURITY.md)
 - **ライセンス**: [LICENSE](https://github.com/paraccoli/flutter_finance_app/blob/main/LICENSE)
@@ -146,9 +141,9 @@ MoneyG Finance Appは、オープンソースプロジェクトとしてコミ�
 
 ### 🛠️ 技術リソース
 
-- **Flutter公式**: [flutter.dev](https://flutter.dev/)
-- **Dart言語**: [dart.dev](https://dart.dev/)
-- **Material Design**: [material.io](https://material.io/design)
+- **Flutter公式**: https://flutter.dev/
+- **Dart言語**: https://dart.dev/
+- **Material Design**: https://material.io/design
 
 ### 📱 プラットフォーム情報
 
