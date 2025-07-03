@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../models/expense.dart';
 import '../models/income.dart';
 import '../models/nisa_investment.dart';
+import '../models/custom_category.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -38,7 +40,7 @@ class DatabaseService {
     // モバイル/デスクトッププラットフォームで適切なデータベースファクトリを使用
     final db = await openDatabase(
       path,
-      version: 2,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -109,6 +111,47 @@ class DatabaseService {
         ''');
       }
     }
+    
+    if (oldVersion < 3) {
+      // カスタムカテゴリテーブルの追加
+      await db.execute('''
+        CREATE TABLE custom_categories(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          type INTEGER NOT NULL,
+          colorValue INTEGER NOT NULL,
+          iconCodePoint INTEGER NOT NULL,
+          iconFontFamily TEXT NOT NULL DEFAULT 'MaterialIcons',
+          sortOrder INTEGER NOT NULL,
+          isDefault INTEGER NOT NULL DEFAULT 0,
+          createdAt TEXT NOT NULL,
+          updatedAt TEXT,
+          UNIQUE(name, type)
+        )
+      ''');
+      
+      // デフォルトカテゴリの挿入
+      await _insertDefaultCategories(db);
+    }
+    
+    if (oldVersion < 4) {
+      // 既存のカスタムカテゴリテーブルを更新（重複を削除してユニーク制約を追加）
+      try {
+        // 重複カテゴリを削除
+        await db.execute('''
+          DELETE FROM custom_categories 
+          WHERE id NOT IN (
+            SELECT MIN(id) 
+            FROM custom_categories 
+            GROUP BY name, type
+          )
+        ''');
+        
+        debugPrint('重複カテゴリを削除しました');
+      } catch (e) {
+        debugPrint('重複カテゴリ削除中にエラー: $e');
+      }
+    }
   }
 
   // テーブルの作成
@@ -147,6 +190,26 @@ class DatabaseService {
         lastUpdated TEXT NOT NULL
       )
     ''');
+    
+    // カスタムカテゴリテーブル
+    await db.execute('''
+      CREATE TABLE custom_categories(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type INTEGER NOT NULL,
+        colorValue INTEGER NOT NULL,
+        iconCodePoint INTEGER NOT NULL,
+        iconFontFamily TEXT NOT NULL DEFAULT 'MaterialIcons',
+        sortOrder INTEGER NOT NULL,
+        isDefault INTEGER NOT NULL DEFAULT 0,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT,
+        UNIQUE(name, type)
+      )
+    ''');
+    
+    // デフォルトカテゴリの挿入
+    await _insertDefaultCategories(db);
   }
   // 支出データの操作メソッド
   Future<int> insertExpense(Expense expense) async {
@@ -414,6 +477,218 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // カスタムカテゴリデータの操作メソッド
+  
+  /// デフォルトカテゴリを挿入するメソッド
+  Future<void> _insertDefaultCategories(Database db) async {
+    final now = DateTime.now().toIso8601String();
+    
+    // 支出のデフォルトカテゴリ
+    final defaultExpenseCategories = [
+      {'name': '食費', 'colorValue': Colors.orange.toARGB32(), 'iconCodePoint': Icons.fastfood.codePoint, 'sortOrder': 0},
+      {'name': '交通費', 'colorValue': Colors.blue.toARGB32(), 'iconCodePoint': Icons.directions_bus.codePoint, 'sortOrder': 1},
+      {'name': '娯楽', 'colorValue': Colors.purple.toARGB32(), 'iconCodePoint': Icons.movie.codePoint, 'sortOrder': 2},
+      {'name': '光熱費', 'colorValue': Colors.yellow.toARGB32(), 'iconCodePoint': Icons.flash_on.codePoint, 'sortOrder': 3},
+      {'name': '買い物', 'colorValue': Colors.pink.toARGB32(), 'iconCodePoint': Icons.shopping_bag.codePoint, 'sortOrder': 4},
+      {'name': '健康・医療', 'colorValue': Colors.red.toARGB32(), 'iconCodePoint': Icons.favorite.codePoint, 'sortOrder': 5},
+      {'name': '教育', 'colorValue': Colors.green.toARGB32(), 'iconCodePoint': Icons.school.codePoint, 'sortOrder': 6},
+      {'name': '家賃', 'colorValue': Colors.brown.toARGB32(), 'iconCodePoint': Icons.home.codePoint, 'sortOrder': 7},
+      {'name': 'その他', 'colorValue': Colors.grey.toARGB32(), 'iconCodePoint': Icons.category.codePoint, 'sortOrder': 8},
+    ];
+
+    // 収入のデフォルトカテゴリ
+    final defaultIncomeCategories = [
+      {'name': '給与', 'colorValue': Colors.green.toARGB32(), 'iconCodePoint': Icons.attach_money.codePoint, 'sortOrder': 0},
+      {'name': 'ボーナス', 'colorValue': Colors.lightGreen.toARGB32(), 'iconCodePoint': Icons.money.codePoint, 'sortOrder': 1},
+      {'name': '投資収入', 'colorValue': Colors.blue.toARGB32(), 'iconCodePoint': Icons.trending_up.codePoint, 'sortOrder': 2},
+      {'name': '副業', 'colorValue': Colors.orange.toARGB32(), 'iconCodePoint': Icons.work.codePoint, 'sortOrder': 3},
+      {'name': '贈与・臨時収入', 'colorValue': Colors.pink.toARGB32(), 'iconCodePoint': Icons.card_giftcard.codePoint, 'sortOrder': 4},
+      {'name': 'その他', 'colorValue': Colors.grey.toARGB32(), 'iconCodePoint': Icons.add_circle.codePoint, 'sortOrder': 5},
+    ];
+
+    // 支出カテゴリの挿入
+    for (final category in defaultExpenseCategories) {
+      await db.insert('custom_categories', {
+        'name': category['name'],
+        'type': CategoryType.expense.index,
+        'colorValue': category['colorValue'],
+        'iconCodePoint': category['iconCodePoint'],
+        'iconFontFamily': 'MaterialIcons',
+        'sortOrder': category['sortOrder'],
+        'isDefault': 1,
+        'createdAt': now,
+      });
+    }
+
+    // 収入カテゴリの挿入
+    for (final category in defaultIncomeCategories) {
+      await db.insert('custom_categories', {
+        'name': category['name'],
+        'type': CategoryType.income.index,
+        'colorValue': category['colorValue'],
+        'iconCodePoint': category['iconCodePoint'],
+        'iconFontFamily': 'MaterialIcons',
+        'sortOrder': category['sortOrder'],
+        'isDefault': 1,
+        'createdAt': now,
+      });
+    }
+  }
+
+  /// カスタムカテゴリを挿入
+  Future<int> insertCustomCategory(CustomCategory category) async {
+    try {
+      debugPrint('DatabaseService: カスタムカテゴリを挿入中... 名前: ${category.name}, タイプ: ${category.type}');
+      Database db = await database;
+      
+      // 重複チェック
+      final existing = await db.query(
+        'custom_categories',
+        where: 'name = ? AND type = ?',
+        whereArgs: [category.name, category.type.index],
+      );
+      
+      if (existing.isNotEmpty) {
+        throw Exception('同じ名前のカテゴリが既に存在します');
+      }
+      
+      final result = await db.insert('custom_categories', category.toMap());
+      debugPrint('DatabaseService: カスタムカテゴリの挿入が完了しました。ID: $result');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('DatabaseService: カスタムカテゴリ挿入中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// すべてのカスタムカテゴリを取得
+  Future<List<CustomCategory>> getCustomCategories() async {
+    Database db = await database;
+    List<Map<String, dynamic>> maps = await db.query(
+      'custom_categories',
+      orderBy: 'type ASC, sortOrder ASC',
+    );
+    return List.generate(maps.length, (i) {
+      return CustomCategory.fromMap(maps[i]);
+    });
+  }
+
+  /// 指定されたタイプのカスタムカテゴリを取得
+  Future<List<CustomCategory>> getCustomCategoriesByType(CategoryType type) async {
+    Database db = await database;
+    List<Map<String, dynamic>> maps = await db.query(
+      'custom_categories',
+      where: 'type = ?',
+      whereArgs: [type.index],
+      orderBy: 'sortOrder ASC',
+    );
+    return List.generate(maps.length, (i) {
+      return CustomCategory.fromMap(maps[i]);
+    });
+  }
+
+  /// カスタムカテゴリを更新
+  Future<int> updateCustomCategory(CustomCategory category) async {
+    try {
+      debugPrint('DatabaseService: カスタムカテゴリを更新中... ID: ${category.id}, 名前: ${category.name}');
+      Database db = await database;
+      final updatedCategory = category.copyWith(updatedAt: DateTime.now());
+      final result = await db.update(
+        'custom_categories',
+        updatedCategory.toMap(),
+        where: 'id = ?',
+        whereArgs: [category.id],
+      );
+      debugPrint('DatabaseService: カスタムカテゴリの更新が完了しました。');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('DatabaseService: カスタムカテゴリ更新中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// カスタムカテゴリを削除
+  Future<int> deleteCustomCategory(int id) async {
+    try {
+      debugPrint('DatabaseService: カスタムカテゴリを削除中... ID: $id');
+      Database db = await database;
+      
+      // デフォルトカテゴリは削除できない
+      final category = await db.query(
+        'custom_categories',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      if (category.isNotEmpty && category.first['isDefault'] == 1) {
+        throw Exception('デフォルトカテゴリは削除できません');
+      }
+      
+      final result = await db.delete(
+        'custom_categories',
+        where: 'id = ? AND isDefault = 0',
+        whereArgs: [id],
+      );
+      debugPrint('DatabaseService: カスタムカテゴリの削除が完了しました。');
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint('DatabaseService: カスタムカテゴリ削除中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// カテゴリの並び順を更新
+  Future<void> updateCategorySortOrder(List<CustomCategory> categories) async {
+    try {
+      debugPrint('DatabaseService: カテゴリの並び順を更新中...');
+      Database db = await database;
+      
+      await db.transaction((txn) async {
+        for (int i = 0; i < categories.length; i++) {
+          final category = categories[i].copyWith(
+            sortOrder: i,
+            updatedAt: DateTime.now(),
+          );
+          await txn.update(
+            'custom_categories',
+            category.toMap(),
+            where: 'id = ?',
+            whereArgs: [category.id],
+          );
+        }
+      });
+      
+      debugPrint('DatabaseService: カテゴリの並び順の更新が完了しました。');
+    } catch (e, stackTrace) {
+      debugPrint('DatabaseService: カテゴリ並び順更新中にエラーが発生しました: $e');
+      debugPrint('スタックトレース: $stackTrace');
+      rethrow;
+    }
+  }
+
+  /// IDでカスタムカテゴリを取得
+  Future<CustomCategory?> getCustomCategoryById(int id) async {
+    try {
+      Database db = await database;
+      List<Map<String, dynamic>> maps = await db.query(
+        'custom_categories',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+      
+      if (maps.isNotEmpty) {
+        return CustomCategory.fromMap(maps.first);
+      }
+      return null;
+    } catch (e) {
+      debugPrint('DatabaseService: カスタムカテゴリ取得中にエラー: $e');
+      return null;
+    }
   }
       // このセクションはテストデータインポート機能の一部として削除されました
   

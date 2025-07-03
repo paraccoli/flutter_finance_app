@@ -18,6 +18,7 @@ import 'splash_screen.dart';
 import 'theme_selection_screen.dart';
 import 'custom_theme_creator_screen.dart';
 import 'custom_theme_manager_screen.dart';
+import 'custom_category_manager_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -179,6 +180,30 @@ class _SettingScreenState extends State<SettingScreen> {
                         ),
                       );
                     },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // カテゴリ管理セクション
+            _buildSectionTitle('カテゴリ管理', isDark),
+            const SizedBox(height: 16),
+            _buildCard(
+              isDark,
+              Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.category, color: Colors.purple),
+                    title: const Text('カスタムカテゴリ'),
+                    subtitle: const Text('支出・収入カテゴリの作成・編集・管理'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CustomCategoryManagerScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),
