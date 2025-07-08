@@ -199,20 +199,12 @@ const storage = FlutterSecureStorage(
 ## 📚 関連ドキュメント
 
 - 📖 [メインREADME](README.md)
-- 🍎 [iOS版リリースノート](RELEASE_NOTES_iOS_v1.2.2.md)
 - 🔒 [セキュリティポリシー](SECURITY.md)
 - 🤝 [コントリビューションガイド](CONTRIBUTING.md)
 - 📄 [プライバシーポリシー](PRIVACY.md)
 
 ---
 
-## 🎯 次のステップ
-
-1. ✅ **環境準備**: Xcode・Flutterセットアップ
-2. 🔧 **ビルド実行**: デバッグ・リリースビルド
-3. 📱 **デバイステスト**: 実機での動作確認
-4. 🚀 **デプロイ**: TestFlight/App Store配信
-5. 📈 **フィードバック**: ユーザー評価・改善
 
 ---
 
