@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../services/database_service.dart';
+import '../services/category_service.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../utils/app_theme.dart';
 
@@ -17,15 +18,25 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Expense> _allExpenses = [];
   List<Expense> _filteredExpenses = [];
-  ExpenseCategory? _selectedCategory;
+  CategoryItem? _selectedCategory;
   DateTimeRange? _selectedDateRange;
   double? _minAmount;
   double? _maxAmount;
+  List<CategoryItem> _availableCategories = [];
 
   @override
   void initState() {
     super.initState();
     _loadExpenses();
+    _loadCategories();
+  }
+  
+  Future<void> _loadCategories() async {
+    final categoryService = CategoryService();
+    final categories = await categoryService.getExpenseCategories();
+    setState(() {
+      _availableCategories = categories;
+    });
   }
   Future<void> _loadExpenses() async {
     final expenses = await DatabaseService().getExpenses();
@@ -36,15 +47,25 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
   }
 
   void _filterExpenses() {
-    List<Expense> filtered = _allExpenses;    // テキスト検索
+    List<Expense> filtered = _allExpenses;    
+
+    // テキスト検索
     if (_searchController.text.isNotEmpty) {
       filtered = filtered.where((expense) =>
           (expense.note ?? '').toLowerCase().contains(_searchController.text.toLowerCase())).toList();
     }
 
-    // カテゴリフィルタ
+    // カテゴリフィルタ（カスタムカテゴリ対応）
     if (_selectedCategory != null) {
-      filtered = filtered.where((expense) => expense.category == _selectedCategory).toList();
+      filtered = filtered.where((expense) {
+        if (_selectedCategory!.isCustom) {
+          // カスタムカテゴリの場合
+          return expense.customCategoryId == _selectedCategory!.id;
+        } else {
+          // レガシーカテゴリの場合
+          return expense.customCategoryId == null && expense.category.index == _selectedCategory!.id;
+        }
+      }).toList();
     }
 
     // 日付範囲フィルタ
@@ -120,7 +141,7 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
                     children: [
                       // カテゴリフィルタ
                       FilterChip(
-                        label: Text(_selectedCategory?.displayName ?? 'カテゴリ'),
+                        label: Text(_selectedCategory?.name ?? 'カテゴリ'),
                         selected: _selectedCategory != null,
                         onSelected: (selected) async {
                           if (selected) {
@@ -220,26 +241,56 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
                         final expense = _filteredExpenses[index];
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: expense.category.color,
-                              child: Icon(
-                                expense.category.icon,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                            title: Text(expense.note ?? '支出'),
-                            subtitle: Text(
-                              '${expense.category.displayName} • ${DateFormat('yyyy/MM/dd').format(expense.date)}',
-                            ),
-                            trailing: Text(
-                              '¥${NumberFormat('#,###').format(expense.amount)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                          child: FutureBuilder<Map<String, dynamic>>(
+                            future: _getExpenseDisplayInfo(expense),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                final displayInfo = snapshot.data!;
+                                return ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: displayInfo['color'],
+                                    child: Icon(
+                                      displayInfo['icon'],
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  title: Text(expense.note ?? '支出'),
+                                  subtitle: Text(
+                                    '${displayInfo['name']} • ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+                                  ),
+                                  trailing: Text(
+                                    '¥${NumberFormat('#,###').format(expense.amount)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                return ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: Colors.grey,
+                                    child: Icon(
+                                      Icons.category,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
+                                  title: Text(expense.note ?? '支出'),
+                                  subtitle: Text(
+                                    '読み込み中... • ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+                                  ),
+                                  trailing: Text(
+                                    '¥${NumberFormat('#,###').format(expense.amount)}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         );
                       },
@@ -278,8 +329,8 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
     );
   }
 
-  Future<ExpenseCategory?> _showCategoryDialog() async {
-    return showDialog<ExpenseCategory>(
+  Future<CategoryItem?> _showCategoryDialog() async {
+    return showDialog<CategoryItem>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('カテゴリを選択'),
@@ -287,10 +338,22 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
           width: double.maxFinite,
           child: ListView(
             shrinkWrap: true,
-            children: ExpenseCategory.values.map((category) {
+            children: _availableCategories.map((category) {
               return ListTile(
-                leading: Icon(category.icon, color: category.color),
-                title: Text(category.displayName),
+                leading: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: category.color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    category.icon, 
+                    color: category.color,
+                    size: 16,
+                  ),
+                ),
+                title: Text(category.name),
                 onTap: () => Navigator.pop(context, category),
               );
             }).toList(),
@@ -298,6 +361,39 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
         ),
       ),
     );
+  }
+  
+  /// 支出の表示情報を取得（カスタムカテゴリ対応）
+  Future<Map<String, dynamic>> _getExpenseDisplayInfo(Expense expense) async {
+    try {
+      if (expense.customCategoryId != null) {
+        // カスタムカテゴリの場合
+        final categoryService = CategoryService();
+        final databaseService = DatabaseService();
+        final categoryName = await categoryService.getExpenseCategoryNameFromExpense(expense);
+        final customCategory = await databaseService.getCustomCategoryById(expense.customCategoryId!);
+        
+        return {
+          'name': categoryName,
+          'color': customCategory?.color ?? Colors.grey,
+          'icon': customCategory?.icon ?? Icons.category,
+        };
+      } else {
+        // レガシーカテゴリの場合
+        return {
+          'name': expense.category.displayName,
+          'color': expense.category.color,
+          'icon': expense.category.icon,
+        };
+      }
+    } catch (e) {
+      debugPrint('カテゴリ表示情報取得エラー: $e');
+      return {
+        'name': 'その他',
+        'color': Colors.grey,
+        'icon': Icons.category,
+      };
+    }
   }
 
   Future<void> _showAmountRangeDialog() async {

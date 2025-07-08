@@ -40,7 +40,7 @@ class DatabaseService {
     // モバイル/デスクトッププラットフォームで適切なデータベースファクトリを使用
     final db = await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -152,6 +152,24 @@ class DatabaseService {
         debugPrint('重複カテゴリ削除中にエラー: $e');
       }
     }
+    
+    if (oldVersion < 5) {
+      // expensesテーブルにcustomCategoryIdカラムを追加
+      try {
+        await db.execute('ALTER TABLE expenses ADD COLUMN customCategoryId INTEGER');
+        debugPrint('expenses テーブルにcustomCategoryIdカラムを追加しました');
+      } catch (e) {
+        debugPrint('expenses テーブル更新中にエラー: $e');
+      }
+      
+      // incomesテーブルにも同様の更新が必要な場合は追加
+      try {
+        await db.execute('ALTER TABLE incomes ADD COLUMN customCategoryId INTEGER');
+        debugPrint('incomes テーブルにcustomCategoryIdカラムを追加しました');
+      } catch (e) {
+        debugPrint('incomes テーブル更新中にエラー: $e');
+      }
+    }
   }
 
   // テーブルの作成
@@ -163,6 +181,7 @@ class DatabaseService {
         amount REAL NOT NULL,
         date TEXT NOT NULL,
         category INTEGER NOT NULL,
+        customCategoryId INTEGER,
         note TEXT
       )
     ''');
@@ -626,6 +645,46 @@ class DatabaseService {
       
       if (category.isNotEmpty && category.first['isDefault'] == 1) {
         throw Exception('デフォルトカテゴリは削除できません');
+      }
+      
+      // このカテゴリを使用している支出・収入データをチェック
+      final expenseCount = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM expenses WHERE customCategoryId = ?',
+        [id],
+      );
+      final incomeCount = await db.rawQuery(
+        'SELECT COUNT(*) as count FROM incomes WHERE customCategoryId = ?',
+        [id],
+      );
+      
+      final expenseUsageCount = expenseCount.first['count'] as int;
+      final incomeUsageCount = incomeCount.first['count'] as int;
+      
+      if (expenseUsageCount > 0 || incomeUsageCount > 0) {
+        debugPrint('カテゴリ削除警告: このカテゴリは${expenseUsageCount}件の支出、${incomeUsageCount}件の収入で使用されています');
+        
+        // カテゴリを使用しているデータのcustomCategoryIdをNULLに設定
+        // これにより、表示時に「削除されたカテゴリ」として扱われる
+        await db.transaction((txn) async {
+          if (expenseUsageCount > 0) {
+            await txn.update(
+              'expenses',
+              {'customCategoryId': null},
+              where: 'customCategoryId = ?',
+              whereArgs: [id],
+            );
+          }
+          if (incomeUsageCount > 0) {
+            await txn.update(
+              'incomes',
+              {'customCategoryId': null},
+              where: 'customCategoryId = ?',
+              whereArgs: [id],
+            );
+          }
+        });
+        
+        debugPrint('関連するデータのcustomCategoryIdをクリアしました');
       }
       
       final result = await db.delete(

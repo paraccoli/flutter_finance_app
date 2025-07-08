@@ -27,7 +27,8 @@ class Expense {
   final int? id; // データベースのプライマリキー
   final double amount; // 金額
   final DateTime date; // 日付
-  final ExpenseCategory category; // カテゴリ
+  final ExpenseCategory category; // カテゴリ（レガシー用）
+  final int? customCategoryId; // カスタムカテゴリID（新規用）
   final String? note; // メモ（オプション）
 
   Expense({
@@ -35,6 +36,7 @@ class Expense {
     required this.amount,
     required this.date,
     required this.category,
+    this.customCategoryId,
     this.note,
   });
 
@@ -45,6 +47,7 @@ class Expense {
       amount: map['amount'],
       date: DateTime.parse(map['date']),
       category: ExpenseCategory.values[map['category']],
+      customCategoryId: map['customCategoryId'],
       note: map['note'],
     );
   }
@@ -56,6 +59,7 @@ class Expense {
       'amount': amount,
       'date': date.toIso8601String(),
       'category': category.index,
+      'customCategoryId': customCategoryId,
       'note': note,
     };
   }
@@ -66,6 +70,7 @@ class Expense {
     double? amount,
     DateTime? date,
     ExpenseCategory? category,
+    int? customCategoryId,
     String? note,
   }) {
     return Expense(
@@ -73,7 +78,14 @@ class Expense {
       amount: amount ?? this.amount,
       date: date ?? this.date,
       category: category ?? this.category,
+      customCategoryId: customCategoryId ?? this.customCategoryId,
       note: note ?? this.note,
     );
   }
+
+  /// カスタムカテゴリが使用されているかどうかを判定
+  bool get isCustomCategory => customCategoryId != null;
+
+  /// 表示用のカテゴリIDを取得（カスタムカテゴリが優先）
+  int get effectiveCategoryId => customCategoryId ?? category.index;
 }

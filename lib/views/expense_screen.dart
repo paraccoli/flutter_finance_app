@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../viewmodels/expense_viewmodel.dart';
 import '../models/expense.dart';
+import '../services/category_service.dart';
+import '../services/database_service.dart';
 import '../widgets/expense_bar_chart.dart';
 import '../widgets/expense_pie_chart.dart';
+import '../widgets/custom_expense_pie_chart.dart';
 import '../widgets/expense_form.dart';
 import '../widgets/quick_expense_widget.dart';
 
@@ -81,16 +84,31 @@ class ExpenseScreen extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
                 
-                // 円グラフ
-                if (categoryTotals.isNotEmpty)
-                  ExpensePieChart(categoryTotals: categoryTotals)
-                else
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('データがありません'),
-                    ),
-                  ),
+                // 円グラフ（カスタムカテゴリ対応）
+                FutureBuilder<Map<String, Map<String, dynamic>>>(
+                  future: viewModel.getCustomCategoryTotals(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text('グラフの読み込みに失敗しました'),
+                        ),
+                      );
+                    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                      return CustomExpensePieChart(categoryTotals: snapshot.data!);
+                    } else {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text('データがありません'),
+                        ),
+                      );
+                    }
+                  },
+                ),
                 const SizedBox(height: 16),
                 
                 // 支出リスト
@@ -108,6 +126,39 @@ class ExpenseScreen extends StatelessWidget {
         ),        ),
       ),
     );
+  }
+  
+  /// 支出の表示情報を取得（カスタムカテゴリ対応）
+  Future<Map<String, dynamic>> _getExpenseDisplayInfo(Expense expense) async {
+    try {
+      if (expense.customCategoryId != null) {
+        // カスタムカテゴリの場合
+        final categoryService = CategoryService();
+        final databaseService = DatabaseService();
+        final categoryName = await categoryService.getExpenseCategoryNameFromExpense(expense);
+        final customCategory = await databaseService.getCustomCategoryById(expense.customCategoryId!);
+        
+        return {
+          'name': categoryName,
+          'color': customCategory?.color ?? Colors.grey,
+          'icon': customCategory?.icon ?? Icons.category,
+        };
+      } else {
+        // レガシーカテゴリの場合
+        return {
+          'name': expense.category.displayName,
+          'color': _getCategoryColor(expense.category),
+          'icon': _getCategoryIcon(expense.category),
+        };
+      }
+    } catch (e) {
+      debugPrint('カテゴリ表示情報取得エラー: $e');
+      return {
+        'name': 'その他',
+        'color': Colors.grey,
+        'icon': Icons.category,
+      };
+    }
   }
   
   Widget _buildDateRangeSelector(BuildContext context, ExpenseViewModel viewModel) {
@@ -200,23 +251,50 @@ class ExpenseScreen extends StatelessWidget {
               }
               return false;
             },
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: _getCategoryColor(expense.category),
-                child: Icon(
-                  _getCategoryIcon(expense.category),
-                  color: Colors.white,
-                ),
-              ),
-              title: Text(
-                '¥${NumberFormat('#,###').format(expense.amount)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                '${expense.category} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
-              ),
+            child: FutureBuilder<Map<String, dynamic>>(
+              future: _getExpenseDisplayInfo(expense),
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  final displayInfo = snapshot.data!;
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: displayInfo['color'],
+                      child: Icon(
+                        displayInfo['icon'],
+                        color: Colors.white,
+                      ),
+                    ),
+                    title: Text(
+                      '¥${NumberFormat('#,###').format(expense.amount)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${displayInfo['name']} - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+                    ),
+                  );
+                } else {
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.grey,
+                      child: Icon(
+                        Icons.category,
+                        color: Colors.white,
+                      ),
+                    ),
+                    title: Text(
+                      '¥${NumberFormat('#,###').format(expense.amount)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '読み込み中... - ${DateFormat('yyyy/MM/dd').format(expense.date)}',
+                    ),
+                  );
+                }
+              },
             ),
           ),
         );

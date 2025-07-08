@@ -66,7 +66,7 @@ class CategoryService {
       if (customCategories.isNotEmpty) {
         // カスタムカテゴリIDとして扱う
         final category = await _databaseService.getCustomCategoryById(categoryId);
-        return category?.name ?? 'その他';
+        return category?.name ?? '削除されたカテゴリ';
       } else {
         // レガシーカテゴリインデックスとして扱う
         if (categoryId >= 0 && categoryId < ExpenseCategory.values.length) {
@@ -74,6 +74,22 @@ class CategoryService {
         }
         return 'その他';
       }
+    } catch (e) {
+      debugPrint('支出カテゴリ名取得エラー: $e');
+      return 'その他';
+    }
+  }
+
+  /// 支出のカテゴリ名を取得（Expenseオブジェクトから）
+  Future<String> getExpenseCategoryNameFromExpense(Expense expense) async {
+    try {
+      // カスタムカテゴリが設定されている場合
+      if (expense.customCategoryId != null) {
+        final category = await _databaseService.getCustomCategoryById(expense.customCategoryId!);
+        return category?.name ?? '削除されたカテゴリ';
+      }
+      // レガシーカテゴリの場合
+      return expense.category.displayName;
     } catch (e) {
       debugPrint('支出カテゴリ名取得エラー: $e');
       return 'その他';
@@ -88,7 +104,7 @@ class CategoryService {
       if (customCategories.isNotEmpty) {
         // カスタムカテゴリIDとして扱う
         final category = await _databaseService.getCustomCategoryById(categoryId);
-        return category?.name ?? 'その他';
+        return category?.name ?? '削除されたカテゴリ';
       } else {
         // レガシーカテゴリインデックスとして扱う
         if (categoryId >= 0 && categoryId < IncomeCategory.values.length) {

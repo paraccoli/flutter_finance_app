@@ -62,10 +62,19 @@ class _ExpenseFormState extends State<ExpenseForm> {
         
         // 編集モードの場合、対応するカテゴリアイテムを選択
         if (widget.expense != null) {
-          _selectedCategoryItem = categories.firstWhere(
-            (item) => !item.isCustom && item.id == widget.expense!.category.index,
-            orElse: () => categories.first,
-          );
+          if (widget.expense!.customCategoryId != null) {
+            // カスタムカテゴリの場合
+            _selectedCategoryItem = categories.firstWhere(
+              (item) => item.isCustom && item.id == widget.expense!.customCategoryId,
+              orElse: () => categories.first,
+            );
+          } else {
+            // レガシーカテゴリの場合
+            _selectedCategoryItem = categories.firstWhere(
+              (item) => !item.isCustom && item.id == widget.expense!.category.index,
+              orElse: () => categories.first,
+            );
+          }
         } else {
           _selectedCategoryItem = categories.first;
         }
@@ -212,6 +221,9 @@ class _ExpenseFormState extends State<ExpenseForm> {
                     category: _selectedCategoryItem!.isCustom 
                         ? ExpenseCategory.other // カスタムカテゴリの場合は一時的にother
                         : ExpenseCategory.values[_selectedCategoryItem!.id],
+                    customCategoryId: _selectedCategoryItem!.isCustom 
+                        ? _selectedCategoryItem!.id // カスタムカテゴリIDを設定
+                        : null,
                     note: _note,
                   );
 
