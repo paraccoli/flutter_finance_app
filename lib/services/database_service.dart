@@ -661,7 +661,7 @@ class DatabaseService {
       final incomeUsageCount = incomeCount.first['count'] as int;
       
       if (expenseUsageCount > 0 || incomeUsageCount > 0) {
-        debugPrint('カテゴリ削除警告: このカテゴリは${expenseUsageCount}件の支出、${incomeUsageCount}件の収入で使用されています');
+        debugPrint('カテゴリ削除警告: このカテゴリは$expenseUsageCount件の支出、$incomeUsageCount件の収入で使用されています');
         
         // カテゴリを使用しているデータのcustomCategoryIdをNULLに設定
         // これにより、表示時に「削除されたカテゴリ」として扱われる
