@@ -1,4 +1,3 @@
-````markdown
 # 🍎 MoneyG Finance App - iOS版 インストール手順
 
 > **バージョン**: v1.3.1  
@@ -302,5 +301,3 @@ await storage.write(
 
 *iOS版 v1.3.1 インストール手順*  
 *最終更新: 2025年7月3日*
-
-````
