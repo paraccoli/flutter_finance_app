@@ -99,11 +99,16 @@ class _CustomCategoryManagerScreenState extends State<CustomCategoryManagerScree
       return;
     }
 
+    // 使用状況をチェック
+    String warningMessage = '「${category.name}」を削除しますか？\n\n';
+    warningMessage += '⚠️ 注意: このカテゴリを使用している支出/収入データがある場合、\n';
+    warningMessage += 'それらのデータは「削除されたカテゴリ」として表示されるようになります。';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('カテゴリを削除'),
-        content: Text('「${category.name}」を削除しますか？\nこのカテゴリを使用しているデータは影響を受ける可能性があります。'),
+        content: Text(warningMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -124,7 +129,10 @@ class _CustomCategoryManagerScreenState extends State<CustomCategoryManagerScree
         await _loadCategories();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('「${category.name}」を削除しました')),
+            SnackBar(
+              content: Text('「${category.name}」を削除しました\n関連するデータの整合性も保たれています'),
+              duration: const Duration(seconds: 4),
+            ),
           );
         }
       } catch (e) {

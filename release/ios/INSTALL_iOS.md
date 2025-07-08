@@ -1,8 +1,9 @@
+````markdown
 # 🍎 MoneyG Finance App - iOS版 インストール手順
 
-> **バージョン**: v1.2.2  
+> **バージョン**: v1.3.1  
 > **対象**: iOS 13.0 以上  
-> **リリース日**: 2025年6月12日
+> **リリース日**: 2025年7月3日
 
 ---
 
@@ -11,7 +12,7 @@
 ### 💻 開発環境
 - **macOS**: 10.15 (Catalina) 以上
 - **Xcode**: 12.0 以上
-- **Flutter SDK**: 3.32.2 以上
+- **Flutter SDK**: 3.8.1 以上
 - **CocoaPods**: 1.10.0 以上
 
 ### 📱 対象デバイス
@@ -68,12 +69,26 @@ flutter run -d [device-id]
 ### 4. 🏗️ リリースビルド
 
 ```bash
-# iOS用リリースビルド
-flutter build ios --release
+# iOS用リリースビルド（アイコン最適化無効）
+flutter build ios --no-tree-shake-icons
 
 # Archive作成（Xcode）
 # Product → Archive
 ```
+
+---
+
+## 🆕 v1.3.1 新機能対応
+
+### 🏷️ カスタムカテゴリ機能
+- **データベース**: SQLiteでカスタムカテゴリを管理
+- **UI**: Material Iconsライブラリ使用
+- **設定**: iOS設定アプリとの統合
+
+### 🎨 テーマカスタマイズ
+- **iOS Design Guidelines**: ライト/ダークモード対応
+- **Dynamic Type**: iOS標準フォントサイズ対応
+- **アクセシビリティ**: VoiceOver完全対応
 
 ---
 
@@ -85,6 +100,12 @@ flutter build ios --release
 <!-- アプリ名設定 -->
 <key>CFBundleDisplayName</key>
 <string>MoneyG Finance</string>
+
+<!-- バージョン情報 -->
+<key>CFBundleShortVersionString</key>
+<string>1.3.1</string>
+<key>CFBundleVersion</key>
+<string>1</string>
 
 <!-- 通知権限 -->
 <key>UIUserNotificationSettings</key>
@@ -102,6 +123,10 @@ flutter build ios --release
 <true/>
 <key>UIFileSharingEnabled</key>
 <true/>
+
+<!-- カスタムカテゴリ機能用 -->
+<key>UISupportsDocumentBrowser</key>
+<true/>
 ```
 
 ### 🔐 セキュリティ設定
@@ -113,6 +138,10 @@ flutter build ios --release
 
 <key>NSDocumentsFolderUsageDescription</key>
 <string>CSVファイルのインポート・エクスポートにDocumentsフォルダへのアクセスが必要です</string>
+
+<!-- カメラアクセス（レシート撮影機能用） -->
+<key>NSCameraUsageDescription</key>
+<string>レシートの写真撮影機能でカメラアクセスが必要です</string>
 ```
 
 ---
@@ -129,7 +158,13 @@ flutter build ios --release
 3. Provisioning Profileの更新
 ```
 
-#### 2. **依存関係エラー**
+#### 2. **v1.3.1アイコンビルドエラー**
+```bash
+# アイコン最適化を無効にしてビルド
+flutter build ios --no-tree-shake-icons
+```
+
+#### 3. **依存関係エラー**
 ```bash
 # 依存関係のクリーンインストール
 flutter clean
@@ -139,10 +174,10 @@ flutter pub get
 cd ios && pod install && cd ..
 ```
 
-#### 3. **Xcode Build失敗**
+#### 4. **カスタムカテゴリデータベースエラー**
 ```bash
-# Xcodeキャッシュクリア
-rm -rf ~/Library/Developer/Xcode/DerivedData
+# データベースマイグレーション確認
+flutter logs --device ios
 ```
 
 ### 🔧 デバッグコマンド
@@ -156,6 +191,9 @@ flutter doctor --verbose
 
 # パッケージ依存関係確認
 flutter pub deps
+
+# カスタムカテゴリ機能の動作確認
+flutter run -d ios --debug
 ```
 
 ---
@@ -180,7 +218,29 @@ const storage = FlutterSecureStorage(
     accessibility: IOSAccessibility.when_unlocked_this_device_only,
   ),
 );
+
+// カスタムカテゴリデータの暗号化
+await storage.write(
+  key: 'custom_categories_backup',
+  value: encryptedCategoriesJson,
+);
 ```
+
+---
+
+## 📱 v1.3.1 iOS特有機能
+
+### 🍎 iOS統合機能
+- **Siri Shortcuts**: 支出・収入の音声登録
+- **Widgets**: ホーム画面ウィジェット対応
+- **Context Menu**: 3D Touch/Haptic Touchサポート
+- **Share Extension**: 他アプリからのデータ共有
+
+### 🎨 iOS Design Language
+- **SF Symbols**: システムアイコンとの統合
+- **Dynamic Type**: アクセシビリティ対応
+- **Dark Mode**: システム設定と連携
+- **Haptic Feedback**: タッチフィードバック
 
 ---
 
@@ -188,16 +248,21 @@ const storage = FlutterSecureStorage(
 
 ### 🐛 バグ報告
 - **GitHub Issues**: [Issues ページ](https://github.com/paraccoli/flutter_finance_app/issues)
-- **ラベル**: `iOS`, `bug`, `v1.2.2`
+- **ラベル**: `iOS`, `bug`, `v1.3.1`
 
 ### 💡 機能提案
 - **GitHub Discussions**: 新機能のアイデア共有
 - **Feature Request**: テンプレート使用
 
+### 🍎 iOS固有の問題
+- **App Store審査**: 審査ガイドライン対応
+- **TestFlight**: ベータテスト配信サポート
+
 ---
 
 ## 📚 関連ドキュメント
 
+<<<<<<< Updated upstream
 - 📖 [メインREADME](README.md)
 - 🔒 [セキュリティポリシー](SECURITY.md)
 - 🤝 [コントリビューションガイド](CONTRIBUTING.md)
@@ -205,16 +270,37 @@ const storage = FlutterSecureStorage(
 
 ---
 
+=======
+- 📖 [メインREADME](../../README.md)
+- 🍎 [iOS版機能説明](FEATURES_iOS.md)
+- 📝 [リリースノート v1.3.1](../../RELEASE_NOTES_v1.3.1.md)
+- 🔒 [セキュリティポリシー](../../SECURITY.md)
+- 🤝 [コントリビューションガイド](../../CONTRIBUTING.md)
+- 📄 [プライバシーポリシー](../../PRIVACY.md)
+
+---
+
+## 🎯 次のステップ
+
+1. ✅ **環境準備**: Xcode・Flutterセットアップ
+2. 🔧 **ビルド実行**: デバッグ・リリースビルド
+3. 📱 **デバイステスト**: 実機での動作確認
+4. 🏷️ **カスタムカテゴリ**: 新機能の動作確認
+5. 🚀 **デプロイ**: TestFlight/App Store配信
+6. 📈 **フィードバック**: ユーザー評価・改善
+>>>>>>> Stashed changes
 
 ---
 
 <div align="center">
-  <p>🍎 <strong>MoneyG Finance App - iOS版</strong> 🍎</p>
-  <p>📱 <em>安全・安心・プライベートな家計管理</em> 📱</p>
+  <p>🍎 <strong>MoneyG Finance App - iOS版 v1.3.1</strong> 🍎</p>
+  <p>📱 <em>カスタムカテゴリ対応・安全安心な家計管理</em> 📱</p>
   <p>🔒 <em>あなたのデータは、あなたのiOSデバイスに</em> 🔒</p>
 </div>
 
 ---
 
-*iOS版 v1.2.2 インストール手順*  
-*最終更新: 2025年6月12日*
+*iOS版 v1.3.1 インストール手順*  
+*最終更新: 2025年7月3日*
+
+````

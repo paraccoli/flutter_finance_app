@@ -49,9 +49,7 @@ class ExportService {
       final fileName =
           'expenses_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.csv';
       final file = File('${directory.path}/$fileName');
-      await file.writeAsString(csvString, encoding: utf8);
-
-      // ファイルを共有
+      await file.writeAsString(csvString, encoding: utf8); // ファイルを共有
       await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
     } catch (e) {
       throw Exception('CSVエクスポートに失敗しました: $e');

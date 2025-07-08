@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../viewmodels/expense_viewmodel.dart';
 import '../viewmodels/income_viewmodel.dart';
+import '../utils/app_theme.dart';
 import '../widgets/expense_form.dart';
 import '../widgets/income_form.dart';
 import 'expense_screen.dart';
@@ -31,11 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
     const MonthlyReportScreen(),
     const SettingScreen(),
   ];
-
   @override
   Widget build(BuildContext context) {
-    final themeViewModel = Provider.of<ThemeViewModel>(context);
-    final isDark = themeViewModel.isDarkMode;
+    final themeViewModel = Provider.of<ThemeViewModel>(context);    final isDark = themeViewModel.isDarkMode || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic ||
+        themeViewModel.currentTheme == AppThemeType.cosmos;
     return Scaffold(
       body: _screens[_currentIndex],
       floatingActionButton: _buildFloatingActionButtons(),

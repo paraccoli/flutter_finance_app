@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../services/database_service.dart';
+import '../viewmodels/theme_viewmodel.dart';
+import '../utils/app_theme.dart';
 
 class ExpenseSearchScreen extends StatefulWidget {
   const ExpenseSearchScreen({super.key});
@@ -74,12 +77,19 @@ class _ExpenseSearchScreenState extends State<ExpenseSearchScreen> {
       _filteredExpenses = _allExpenses;
     });
   }
-
   @override
   Widget build(BuildContext context) {
+    final themeViewModel = Provider.of<ThemeViewModel>(context);    final isDark = themeViewModel.isDarkMode || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic ||
+        themeViewModel.currentTheme == AppThemeType.cosmos;
+        
     return Scaffold(
+      backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : null,
       appBar: AppBar(
         title: const Text('支出検索'),
+        backgroundColor: isDark ? Theme.of(context).appBarTheme.backgroundColor : null,
+        foregroundColor: isDark ? Theme.of(context).appBarTheme.foregroundColor : null,
         elevation: 0,
       ),
       body: SafeArea(

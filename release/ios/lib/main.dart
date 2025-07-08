@@ -9,7 +9,7 @@ import 'viewmodels/income_viewmodel.dart';
 import 'viewmodels/asset_analysis_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
 import 'views/splash_screen.dart';
-import 'utils/app_theme.dart';
+import 'widgets/background_widget.dart';
 import 'services/database_service.dart'; // DatabaseServiceをインポート
 import 'services/notification_service.dart'; // NotificationServiceをインポート
 
@@ -69,20 +69,18 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NisaViewModel()),
         ChangeNotifierProvider(create: (_) => IncomeViewModel()),
         ChangeNotifierProvider(create: (_) => AssetAnalysisViewModel()),
-      ],
-      child: Consumer<ThemeViewModel>(
+      ],      child: Consumer<ThemeViewModel>(
         builder: (context, themeViewModel, _) {          return AnimatedTheme(
-            data: themeViewModel.isDarkMode
-                ? AppTheme.darkTheme()
-                : AppTheme.lightTheme(),
-            duration: const Duration(milliseconds: 300),
-            child: MaterialApp(
+            data: themeViewModel.themeData,
+            duration: const Duration(milliseconds: 300),            child: MaterialApp(
               title: 'Money:G',
-              theme: AppTheme.lightTheme(),
-              darkTheme: AppTheme.darkTheme(),
-              themeMode: themeViewModel.isDarkMode
-                  ? ThemeMode.dark
-                  : ThemeMode.light,
+              theme: themeViewModel.themeData,
+              builder: (context, child) {
+                return BackgroundWidget(
+                  themeType: themeViewModel.currentTheme,
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
               home: const SplashScreen(),
             ),
           );

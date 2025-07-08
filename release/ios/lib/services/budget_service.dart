@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/expense.dart';
 
-class BudgetService {  // カテゴリ別予算設定
-  static final Map<ExpenseCategory, double> _categoryBudgets = {
+class BudgetService {
+  // デフォルトのカテゴリ別予算設定
+  static final Map<ExpenseCategory, double> _defaultCategoryBudgets = {
     ExpenseCategory.food: 50000,
     ExpenseCategory.transportation: 20000,
     ExpenseCategory.entertainment: 30000,
@@ -14,40 +16,114 @@ class BudgetService {  // カテゴリ別予算設定
     ExpenseCategory.other: 20000,
   };
 
-  // 月次総予算
+  // カテゴリ別予算設定（メモリキャッシュ）
+  static Map<ExpenseCategory, double> _categoryBudgets = {};
+
+  // 月次総予算（メモリキャッシュ）
   static double _monthlyBudget = 300000;
 
+  // 予算アラート設定
+  static bool _budgetAlertEnabled = true;
+
+  // 初期化フラグ
+  static bool _isInitialized = false;
+
+  // 初期化
+  static Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    final prefs = await SharedPreferences.getInstance();
+
+    // カテゴリ別予算を読み込み
+    _categoryBudgets = {};
+    for (final category in ExpenseCategory.values) {
+      final key = 'budget_${category.name}';
+      final budget =
+          prefs.getDouble(key) ?? _defaultCategoryBudgets[category] ?? 0.0;
+      _categoryBudgets[category] = budget;
+    }
+
+    // 月次総予算を読み込み
+    _monthlyBudget =
+        prefs.getDouble('monthly_budget') ??
+        _categoryBudgets.values.fold(0.0, (sum, budget) => sum + budget);
+
+    // 予算アラート設定を読み込み
+    _budgetAlertEnabled = prefs.getBool('budget_alert_enabled') ?? true;
+
+    _isInitialized = true;
+  }
+
   // 予算設定の取得
-  static Map<ExpenseCategory, double> getCategoryBudgets() {
+  static Future<Map<ExpenseCategory, double>> getCategoryBudgets() async {
+    await initialize();
     return Map.from(_categoryBudgets);
   }
 
-  static double getMonthlyBudget() {
+  static Future<double> getMonthlyBudget() async {
+    await initialize();
     return _monthlyBudget;
   }
 
-  static double getCategoryBudget(ExpenseCategory category) {
+  static Future<double> getCategoryBudget(ExpenseCategory category) async {
+    await initialize();
     return _categoryBudgets[category] ?? 0;
   }
 
+  static Future<bool> isBudgetAlertEnabled() async {
+    await initialize();
+    return _budgetAlertEnabled;
+  }
+
   // 予算設定の更新
-  static void setCategoryBudget(ExpenseCategory category, double amount) {
+  static Future<void> setCategoryBudget(
+    ExpenseCategory category,
+    double amount,
+  ) async {
+    await initialize();
     _categoryBudgets[category] = amount;
-    _updateMonthlyBudget();
+
+    // SharedPreferencesに保存
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('budget_${category.name}', amount);
   }
 
-  static void setMonthlyBudget(double amount) {
+  static Future<void> setMonthlyBudget(double amount) async {
+    await initialize();
     _monthlyBudget = amount;
+
+    // SharedPreferencesに保存
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('monthly_budget', amount);
   }
 
-  // 月次予算の自動計算
-  static void _updateMonthlyBudget() {
-    _monthlyBudget = _categoryBudgets.values.fold(0, (sum, budget) => sum + budget);
+  static Future<void> setBudgetAlertEnabled(bool enabled) async {
+    await initialize();
+    _budgetAlertEnabled = enabled;
+
+    // SharedPreferencesに保存
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('budget_alert_enabled', enabled);
+  }
+
+  // 同期メソッド（後方互換性のため）
+  static Map<ExpenseCategory, double> getCategoryBudgetsSync() {
+    if (!_isInitialized) {
+      return Map.from(_defaultCategoryBudgets);
+    }
+    return Map.from(_categoryBudgets);
+  }
+
+  static double getMonthlyBudgetSync() {
+    if (!_isInitialized) {
+      return 300000;
+    }
+    return _monthlyBudget;
   }
 
   // 予算使用率の計算
   static double calculateCategoryUsage(ExpenseCategory category, double spent) {
-    final budget = getCategoryBudget(category);
+    final budget = getCategoryBudgetSync(category);
     if (budget == 0) return 0;
     return (spent / budget * 100).clamp(0, 200);
   }
@@ -67,18 +143,32 @@ class BudgetService {  // カテゴリ別予算設定
 
   // 予算残額の計算
   static double getRemainingBudget(ExpenseCategory category, double spent) {
-    return (getCategoryBudget(category) - spent).clamp(0, double.infinity);
+    return (getCategoryBudgetSync(category) - spent).clamp(0, double.infinity);
   }
 
   static double getRemainingMonthlyBudget(double totalSpent) {
     return (_monthlyBudget - totalSpent).clamp(0, double.infinity);
   }
+
+  static double getCategoryBudgetSync(ExpenseCategory category) {
+    if (!_isInitialized) {
+      return _defaultCategoryBudgets[category] ?? 0.0;
+    }
+    return _categoryBudgets[category] ?? 0;
+  }
+
+  static bool isBudgetAlertEnabledSync() {
+    if (!_isInitialized) {
+      return true;
+    }
+    return _budgetAlertEnabled;
+  }
 }
 
 enum BudgetWarningLevel {
-  safe,     // 60%未満
-  caution,  // 60-79%
-  warning,  // 80-99%
+  safe, // 60%未満
+  caution, // 60-79%
+  warning, // 80-99%
   exceeded, // 100%以上
 }
 

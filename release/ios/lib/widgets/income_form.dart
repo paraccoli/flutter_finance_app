@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/income.dart';
+import '../services/category_service.dart';
 
 class IncomeForm extends StatefulWidget {
   final Function(Income) onSave;
@@ -18,31 +19,59 @@ class IncomeForm extends StatefulWidget {
 
 class _IncomeFormState extends State<IncomeForm> {
   final _formKey = GlobalKey<FormState>();
+  final CategoryService _categoryService = CategoryService();
+  
   late double _amount;
   late DateTime _date;
-  late IncomeCategory _category;
+  CategoryItem? _selectedCategoryItem;
   String? _note;
+  
+  List<CategoryItem> _availableCategories = [];
+  bool _isLoadingCategories = true;
   
   final TextEditingController _dateController = TextEditingController();
   
   @override
   void initState() {
     super.initState();
+    _loadCategories();
+    
     // 編集モードの場合は既存の値をセット
     if (widget.income != null) {
       _amount = widget.income!.amount;
       _date = widget.income!.date;
-      _category = widget.income!.category;
       _note = widget.income!.note;
     } else {
       // 新規作成モードの場合はデフォルト値をセット
       _amount = 0;
       _date = DateTime.now();
-      _category = IncomeCategory.salary;
       _note = null;
     }
     
     _dateController.text = DateFormat('yyyy/MM/dd').format(_date);
+  }
+  
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await _categoryService.getIncomeCategories();
+      setState(() {
+        _availableCategories = categories;
+        _isLoadingCategories = false;
+        
+        // 編集モードの場合、対応するカテゴリアイテムを選択
+        if (widget.income != null) {
+          _selectedCategoryItem = categories.firstWhere(
+            (item) => !item.isCustom && item.id == widget.income!.category.index,
+            orElse: () => categories.first,
+          );
+        } else {
+          _selectedCategoryItem = categories.first;
+        }
+      });
+    } catch (e) {
+      setState(() => _isLoadingCategories = false);
+      debugPrint('カテゴリ読み込みエラー: $e');
+    }
   }
   
   @override
@@ -108,26 +137,51 @@ class _IncomeFormState extends State<IncomeForm> {
           const SizedBox(height: 16),
           
           // カテゴリ選択
-          DropdownButtonFormField<IncomeCategory>(
-            decoration: const InputDecoration(
-              labelText: 'カテゴリ',
-              prefixIcon: Icon(Icons.category),
-            ),
-            value: _category,
-            items: IncomeCategory.values.map((category) {
-              return DropdownMenuItem(
-                value: category,
-                child: Text(category.toString()),
-              );
-            }).toList(),
-            onChanged: (value) {
-              if (value != null) {
+          if (_isLoadingCategories)
+            const Center(child: CircularProgressIndicator())
+          else
+            DropdownButtonFormField<CategoryItem>(
+              decoration: const InputDecoration(
+                labelText: 'カテゴリ',
+                prefixIcon: Icon(Icons.category),
+              ),
+              value: _selectedCategoryItem,
+              items: _availableCategories.map((item) {
+                return DropdownMenuItem<CategoryItem>(
+                  value: item,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: item.color.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Icon(
+                          item.icon,
+                          color: item.color,
+                          size: 16,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(item.name),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (value) {
                 setState(() {
-                  _category = value;
+                  _selectedCategoryItem = value;
                 });
-              }
-            },
-          ),
+              },
+              validator: (value) {
+                if (value == null) {
+                  return 'カテゴリを選択してください';
+                }
+                return null;
+              },
+            ),
           const SizedBox(height: 16),
           
           // メモ入力
@@ -146,7 +200,7 @@ class _IncomeFormState extends State<IncomeForm> {
             // 保存ボタン
           ElevatedButton(
             onPressed: () async {
-              if (_formKey.currentState!.validate()) {
+              if (_formKey.currentState!.validate() && _selectedCategoryItem != null) {
                 try {
                   _formKey.currentState!.save();
                   
@@ -154,7 +208,9 @@ class _IncomeFormState extends State<IncomeForm> {
                     id: widget.income?.id,
                     amount: _amount,
                     date: _date,
-                    category: _category,
+                    category: _selectedCategoryItem!.isCustom 
+                        ? IncomeCategory.other // カスタムカテゴリの場合は一時的にother
+                        : IncomeCategory.values[_selectedCategoryItem!.id],
                     note: _note,
                   );
                   
@@ -165,7 +221,9 @@ class _IncomeFormState extends State<IncomeForm> {
                     builder: (context) => const Center(
                       child: CircularProgressIndicator(),
                     ),
-                  );                  await widget.onSave(income);
+                  );
+
+                  await widget.onSave(income);
                   
                   // 親画面がダイアログを閉じるため、ここではローディングのみ終了
                   if (context.mounted) {

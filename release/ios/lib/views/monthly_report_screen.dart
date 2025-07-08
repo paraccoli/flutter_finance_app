@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../viewmodels/theme_viewmodel.dart';
+import '../utils/app_theme.dart';
 import '../services/database_service.dart';
 import '../models/expense.dart';
 import '../models/income.dart';
@@ -74,11 +75,12 @@ class _MonthlyReportScreenState extends State<MonthlyReportScreen> {
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
-    final themeViewModel = Provider.of<ThemeViewModel>(context);
-    final isDark = themeViewModel.isDarkMode;
+    final themeViewModel = Provider.of<ThemeViewModel>(context);    final isDark = themeViewModel.isDarkMode || 
+        themeViewModel.currentTheme == AppThemeType.cyber ||
+        themeViewModel.currentTheme == AppThemeType.cosmic ||
+        themeViewModel.currentTheme == AppThemeType.cosmos;
 
     // 月別データを集計
     final monthlyIncomes = _getMonthlyIncomes();
