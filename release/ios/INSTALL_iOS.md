@@ -1,4 +1,3 @@
-````markdown
 # 🍎 MoneyG Finance App - iOS版 インストール手順
 
 > **バージョン**: v1.3.1  
