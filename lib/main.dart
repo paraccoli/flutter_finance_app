@@ -10,8 +10,8 @@ import 'viewmodels/asset_analysis_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
 import 'views/splash_screen.dart';
 import 'widgets/background_widget.dart';
-import 'services/database_service.dart'; // DatabaseServiceをインポート
-import 'services/notification_service.dart'; // NotificationServiceをインポート
+import 'services/database_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

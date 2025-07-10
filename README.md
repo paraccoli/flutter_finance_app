@@ -1,43 +1,62 @@
 # Money:G - 個人財務管理アプリ
 
 <div align="center">
+
   <img src="assets/icon/app_icon.png" alt="Money:G Logo" width="120" height="120">
-  
+
   [![Flutter](https://img.shields.io/badge/Flutter-3.32.2+-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev)
   [![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?style=flat&logo=dart&logoColor=white)](https://dart.dev)
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Android](https://img.shields.io/badge/Android-API%2021+-3DDC84?style=flat&logo=android&logoColor=white)](https://android.com)
   [![iOS](https://img.shields.io/badge/iOS-13.0+-000000?style=flat&logo=apple&logoColor=white)](https://www.apple.com/ios)
-  [![Version](https://img.shields.io/badge/Version-1.2.2-blue.svg)](https://github.com/paraccoli/flutter_finance_app/releases)
+  [![Version](https://img.shields.io/badge/Version-1.3.1-blue.svg)](https://github.com/paraccoli/flutter_finance_app/releases)
 </div>
 
-## 📱 アプリ概要
+## アプリ概要
 
 **Money:G**は、個人の財務管理を簡単かつ効率的に行うためのFlutterアプリです。支出・収入の記録から投資管理まで、包括的な資産管理機能を提供します。
 
-### ✨ 主な特徴
+### 主な特徴
 
-- 🎨 **Material Design**に基づいた美しく直感的なUI
-- 📊 **リアルタイム分析**による詳細な財務レポート  
-- 💾 **完全ローカル保存**によるプライバシー保護
-- � **CSV インポート/エクスポート**でデータ移行が簡単
-- 🔄 **スワイプアクション**による直感的な編集・削除
-- 📱 **クロスプラットフォーム**対応（Android/iOS対応済み）
-- 🌟 **スプラッシュスクリーン**で洗練された起動体験
+- **Material Design**に基づいたUI
+- **リアルタイム分析**による財務レポート
+- **完全ローカル保存**によるプライバシー保護
+- **CSV インポート/エクスポート**でデータ移行が簡単
+- **スワイプアクション**による直感的な編集・削除
+- **クロスプラットフォーム**対応（Android/iOS対応済み）
 
-## 🚀 全機能一覧
+## 全機能一覧
 
-### 💰 基本的な財務管理
+### 基本的な財務管理
+
 - **支出記録**
   - カテゴリ別分類（食費、交通費、光熱費、家賃、娯楽、医療費、その他）
+  - **カスタムカテゴリ**（v1.3.1新機能）- 独自のカテゴリ作成が可能
   - 金額、日付、メモの記録
   - クイック支出登録
 - **収入記録**
   - カテゴリ別分類（給与、副業、投資、その他）
+  - **カスタムカテゴリ**（v1.3.1新機能）- 独自のカテゴリ作成が可能
   - 金額、日付、メモの記録
   - クイック収入登録
 
-### 📊 分析・レポート機能
+### カスタムカテゴリ機能（v1.3.1新機能）
+
+- **無制限のカテゴリ作成**
+  - 収入・支出それぞれで独自カテゴリを作成
+  - 既存のプリセットカテゴリに加えて利用可能
+- **視覚的カスタマイズ**
+  - 20色のプリセットカラーから選択
+  - カテゴリ別に整理されたアイコンライブラリ
+  - リアルタイムプレビュー機能
+- **カテゴリ管理**
+  - 設定からの簡単アクセス
+  - 編集・削除機能
+  - ドラッグ&ドロップによる並び替え
+  - 重複防止機能
+
+### 分析・レポート機能
+
 - **月次レポート**
   - 支出内訳の棒グラフ表示（v1.2.2で円グラフから改善）
   - カテゴリ別支出ランキング
@@ -48,7 +67,8 @@
   - 貯蓄推移の可視化
   - 年間財務パフォーマンス分析
 
-### 💹 投資管理（NISA）
+### 投資管理（NISA）
+
 - **NISA投資記録**
   - 銘柄別投資額管理
   - リアルタイム損益計算
@@ -58,7 +78,8 @@
   - 運用パフォーマンス分析
   - 将来予測シミュレーション
 
-### 🔍 データ管理・検索
+### データ管理・検索
+
 - **高度な検索・フィルター**
   - 期間指定検索
   - カテゴリ別フィルタリング
@@ -73,7 +94,8 @@
   - スワイプ削除（確認ダイアログ付き）
   - 直感的なデータ操作
 
-### 💾 バックアップ・復元
+### バックアップ・復元
+
 - **完全バックアップ**
   - 全データのJSON形式エクスポート
   - 自動タイムスタンプ付きファイル名
@@ -83,8 +105,9 @@
   - バックアップファイル情報の詳細表示
   - 復元前のデータ完全性チェック
 
-### 🎯 予算・目標管理
-- **リアルタイム予算管理**（v1.2.2で大幅改善）
+### 予算・目標管理
+
+- **リアルタイム予算管理**（v1.2.2で改善）
   - カテゴリ別月間予算設定
   - リアルタイム予算使用率の可視化
   - 即座に反映される予算超過アラート
@@ -93,13 +116,15 @@
   - 貯蓄目標の設定・追跡
   - 達成率の進捗表示
 
-### 🔔 通知・リマインダー
+### 通知・リマインダー
+
 - **スマート通知**
   - 記録忘れ防止リマインダー
   - 予算超過アラート
   - 定期支出・収入の通知
 
-### ⚙️ カスタマイズ・設定
+### カスタマイズ・設定
+
 - **外観設定**
   - ダークモード切り替え
   - Material Designテーマ
@@ -113,27 +138,33 @@
   - 開発者リンク（GitHub/X）
   - ヘルプ・FAQ
 
-## 🛠️ 技術選定
+## 技術選定
 
 ### フレームワーク・言語
+
 - **Flutter 3.8.1+** - クロスプラットフォーム開発
 - **Dart 3.8.1+** - アプリケーション言語
 
 ### 状態管理・アーキテクチャ
-- **Provider** - 軽量で効率的な状態管理
-- **MVVM パターン** - 保守性の高いアーキテクチャ
+
+- **Provider** - 状態管理
+- **MVVM パターン** - アーキテクチャ
 
 ### データベース・ストレージ
+
 - **SQLite** (`sqflite`) - ローカルデータベース
 - **sqflite_common_ffi** - デスクトップ対応
 - **SharedPreferences** - 設定データ保存
+- **カスタムカテゴリテーブル** - v1.3.1で追加されたカスタムカテゴリ専用テーブル
 
 ### UI・UX
-- **Material Design 3** - 最新のGoogleデザインシステム
-- **Google Fonts** - 美しいタイポグラフィ
-- **FL Chart** - インタラクティブなグラフ表示
+
+- **Material Design 3** - デザインシステム
+- **Google Fonts** - タイポグラフィ
+- **FL Chart** - グラフ表示
 
 ### 機能拡張
+
 - **flutter_local_notifications** - ローカル通知（v1.2.2で改善）
 - **url_launcher** - 外部リンク起動
 - **package_info_plus** - アプリ情報取得
@@ -142,20 +173,22 @@
 - **file_picker** - CSVファイル選択（v1.2.2新機能）
 - **intl** - 国際化・日付フォーマット
 
-## 📁 ファイル構成
+## ファイル構成
 
-```
+```txt
 lib/
 ├── main.dart                    # アプリエントリーポイント
 ├── models/                      # データモデル
 │   ├── expense.dart            # 支出データモデル
 │   ├── income.dart             # 収入データモデル
-│   └── nisa_investment.dart    # NISA投資データモデル
+│   ├── nisa_investment.dart    # NISA投資データモデル
+│   └── custom_category.dart    # カスタムカテゴリデータモデル（v1.3.1新規）
 ├── services/                    # ビジネスロジック・サービス
 │   ├── database_service.dart   # データベース操作
 │   ├── notification_service.dart # 通知サービス（v1.2.2改善）
 │   ├── export_service.dart     # CSV エクスポート/インポート（v1.2.2強化）
 │   ├── budget_service.dart     # 予算管理（v1.2.2新規）
+│   ├── category_service.dart   # カテゴリ管理サービス（v1.3.1新規）
 │   └── alert_settings_service.dart # アラート設定（v1.2.2新規）
 ├── viewmodels/                  # MVVM ViewModel
 │   └── theme_viewmodel.dart    # テーマ状態管理
@@ -173,6 +206,8 @@ lib/
 │   ├── csv_import_screen.dart     # CSV インポート（v1.2.2新規）
 │   ├── csv_export_screen.dart     # CSV エクスポート（v1.2.2新規）
 │   ├── expense_search_screen.dart # 検索画面
+│   ├── custom_category_manager_screen.dart # カスタムカテゴリ管理（v1.3.1新規）
+│   ├── custom_category_editor_screen.dart # カスタムカテゴリ編集（v1.3.1新規）
 │   └── splash_screen.dart      # スプラッシュ画面（v1.2.2新規）
 ├── widgets/                     # 再利用可能なウィジェット
 │   ├── expense_form.dart       # 支出入力フォーム
@@ -190,9 +225,10 @@ lib/
     └── (共通機能・ヘルパー関数)
 ```
 
-## 🚀 導入方法
+## 導入方法
 
 ### 前提条件
+
 - **Flutter SDK 3.8.1以上**
 - **Dart SDK 3.8.1以上** 
 - **Android Studio** または **VS Code**（推奨）
@@ -203,7 +239,7 @@ lib/
 
 1. **リポジトリのクローン**
    ```bash
-   git clone https://github.com/paraccoli/-Money-G-Finance-app.git
+   git clone https://github.com/paraccoli/flutter_finance_app.git
    cd flutter_finance_app
    ```
 
@@ -229,9 +265,10 @@ lib/
    flutter build ios --release
    ```
 
-## ⚙️ 設定方法
+## 設定方法
 
 ### Android設定
+
 `android/app/build.gradle`で最小SDKを確認：
 ```gradle
 minSdkVersion 21
@@ -239,6 +276,7 @@ targetSdkVersion 34
 ```
 
 ### iOS設定（v1.2.2対応済み）
+
 詳細なiOS設定については [iOS版インストールガイド](release/ios/INSTALL_iOS.md) をご確認ください。
 `ios/Runner/Info.plist`に必要な権限設定が含まれています：
 - ファイルアクセス権限（CSV機能用）
@@ -296,7 +334,7 @@ flutter build macos --release
 flutter build linux --release
 ```
 
-## 🤝 貢献方法
+## 貢献方法
 
 1. このリポジトリをフォーク
 2. フィーチャーブランチを作成 (`git checkout -b feature/AmazingFeature`)
@@ -305,42 +343,19 @@ flutter build linux --release
 5. プルリクエストを開く
 
 ### 開発ガイドライン
+
 - **コードスタイル**: `flutter_lints`に準拠
 - **コミットメッセージ**: わかりやすい日本語で記述
 - **テスト**: 新機能には適切なテストを追加
 - **ドキュメント**: 重要な変更はREADMEも更新
 
-## 📱 スクリーンショット・デモ
+## スクリーンショット・デモ
 
-*アプリのスクリーンショットや動画デモは今後追加予定です*
-
-## 🐛 既知の問題・制限事項
-
-現在、既知の重大な問題はありません。v1.2.2で主要なバグが修正されました：
-- ✅ 予算設定が即座に反映されない問題を修正
-- ✅ 通知API の非推奨警告を解決
-- ✅ iOS版の安定性向上
-- 一部のデスクトップ環境では通知機能に制限があります
-
-## ダウンロード
-
-### 🎯 最新リリース: v1.2.2
-
-#### 🤖 Android版
-- **APK**: [MoneyG-Android-v1.2.2.zip](https://github.com/paraccoli/flutter_finance_app/releases/download/v1.2.2/MoneyG-Android-v1.2.2.zip)
-- **要件**: Android 5.0 (API 21) 以上
-
-#### 🍎 iOS版
-- **ソースコード**: [MoneyG-iOS-v1.2.2.zip](https://github.com/paraccoli/flutter_finance_app/releases/download/v1.2.2/MoneyG-iOS-v1.2.2.zip)
-- **要件**: iOS 13.0 以上
-- **インストール**: [iOS版インストールガイド](release/ios/INSTALL_iOS.md)
-
-#### 📋 全リリース
-すべてのリリースは [GitHub Releases](https://github.com/paraccoli/flutter_finance_app/releases) で確認できます。
+![ホーム画面](assets\images\main.png)
 
 ---
 
-## 📞 サポート・お問い合わせ
+## サポート・お問い合わせ
 
 - **GitHub Issues**: [Issues ページ](https://github.com/paraccoli/flutter_finance_app/issues)
 - **GitHub Discussions**: [コミュニティ](https://github.com/paraccoli/flutter_finance_app/discussions)
@@ -349,52 +364,65 @@ flutter build linux --release
 - **セキュリティポリシー**: [SECURITY.md](SECURITY.md)
 - **コントリビューションガイド**: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-## 📝 更新履歴
+## 変更履歴
 
-### バージョン 1.2.2 (2025-06-12) 🎉
-**iOS版初回リリース & Android版重要更新**
+### バージョン 1.3.1 (2025-07-03)
 
-#### 🍎 iOS版新機能
-- ✨ iOS 13.0以上完全対応
-- 📱 iOS専用UI最適化
-- 🔔 iOS通知システム統合
-- 📤 iOSネイティブ共有機能
+**カスタムカテゴリ機能追加**
 
-#### 🆕 新機能（全プラットフォーム）
-- ✨ **CSV インポート/エクスポート**: 他アプリからのデータ移行対応
-- 🌟 **スプラッシュスクリーン**: アプリ起動体験の向上
-- 👆 **スワイプアクション**: 収入・支出リストでのスワイプ編集・削除
-- 📊 **月次レポート改善**: 円グラフから棒グラフに変更、自動月選択
+#### 新機能
 
-#### 🔧 改善・修正
-- 🐛 **予算設定リアルタイム反映**: 設定変更が即座に反映されるよう修正
-- 🔔 **通知API更新**: 非推奨API使用の警告を解決
-- 📈 **fl_chart 1.0.0**: 最新チャートライブラリに更新
-- 🛡️ **セキュリティ強化**: ローカル保存のセキュリティ向上
+- **カスタムカテゴリシステム**: 収入・支出で独自のカテゴリ作成が可能
+- **視覚的カスタマイズ**: 20色のプリセットカラーとアイコン選択
+- **カテゴリ管理**: 設定からの簡単管理、並び替え機能
+- **データベース拡張**: custom_categoriesテーブル追加、自動マイグレーション
 
-#### 📚 ドキュメント
-- 📖 **包括的ドキュメント**: README、CONTRIBUTING、SECURITY
-- 🍎 **iOS専用ガイド**: インストール・機能・リリースノート
-- 🎯 **GitHub Projects**: プロジェクト管理体系の構築
+#### 修正・改善
+
+- **Flutter API更新**: 非推奨APIの修正（Color.value → Color.toARGB32()）
+- **データ整合性**: 重複防止制約、トランザクション管理強化
+- **静的解析クリーン**: 全ての警告・エラーを解消
+
+### バージョン 1.2.2 (2025-06-12)
+
+#### 新機能
+
+- **CSV インポート/エクスポート**: 他アプリからのデータ移行対応
+- **スプラッシュスクリーン**: アプリ起動体験の向上
+- **スワイプアクション**: 収入・支出リストでのスワイプ編集・削除
+- **月次レポート改善**: 円グラフから棒グラフに変更、自動月選択
+
+#### 改善・修正
+
+- **予算設定リアルタイム反映**: 設定変更が即座に反映されるよう修正
+- **通知API更新**: 非推奨API使用の警告を解決
+- **fl_chart 1.0.0**: 最新チャートライブラリに更新
+- **セキュリティ強化**: ローカル保存のセキュリティ向上
+
+#### ドキュメント
+
+- **包括的ドキュメント**: README、CONTRIBUTING、SECURITY
+- **iOS専用ガイド**: インストール・機能・リリースノート
+- **GitHub Projects**: プロジェクト管理体系の構築
 
 ### バージョン 1.1.0 (2025-06-08)
-- 🎉 iOS機能の削除とMaterial Design統一
-- ✨ 検索・フィルター機能の追加
-- 💾 バックアップ・復元機能の実装
-- 🎯 予算管理機能の追加
-- 📊 クイック収入・支出機能の追加
-- 🗑️ データ完全削除機能の追加
-- 📱 SafeArea対応とUI改善
-- 🔧 各種設定機能の拡充
+
+- 検索・フィルター機能の追加
+- バックアップ・復元機能の実装
+- 予算管理機能の追加
+- クイック収入・支出機能の追加
+- データ完全削除機能の追加
+- 各種設定機能の拡充
 
 ### バージョン 1.0.0 (初回リリース)
-- 📊 基本的な支出・収入記録機能
-- 💹 NISA投資管理機能
-- 📈 月次レポート・資産分析
-- 🔔 通知機能
-- ⚙️ 基本設定機能
 
-## 📄 ライセンス
+- 基本的な支出・収入記録機能
+- NISA投資管理機能
+- 月次レポート・資産分析
+- 通知機能
+- 基本設定機能
+
+## ライセンス
 
 このプロジェクトは [MIT License](LICENSE) の下で配布されています。
 
@@ -403,6 +431,6 @@ flutter build linux --release
 ---
 
 <div align="center">
-  <p>❤️ Made with Flutter by <a href="https://github.com/paraccoli">Paraccoli</a></p>
-  <p>🌟 このプロジェクトが役に立ったら、ぜひスターをお願いします！</p>
+  <p>Made with Flutter by <a href="https://github.com/paraccoli">Paraccoli</a></p>
+  <p>このプロジェクトが役に立ったら、ぜひスターをお願いします！</p>
 </div>
