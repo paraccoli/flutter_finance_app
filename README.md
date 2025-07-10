@@ -287,7 +287,7 @@ targetSdkVersion 34
 アプリ初回起動時に通知権限の許可が求められます。
 設定画面から通知のON/OFFと時刻を変更できます。
 
-## 🔧 開発・ビルド
+## 開発・ビルド
 
 ### 開発環境での実行
 ```bash
@@ -351,7 +351,7 @@ flutter build linux --release
 
 ## スクリーンショット・デモ
 
-![ホーム画面](assets\images\main.png)
+![ホーム画面](assets/images/main.png)
 
 ---
 
