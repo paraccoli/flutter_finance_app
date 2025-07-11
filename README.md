@@ -9,7 +9,7 @@
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Android](https://img.shields.io/badge/Android-API%2021+-3DDC84?style=flat&logo=android&logoColor=white)](https://android.com)
   [![iOS](https://img.shields.io/badge/iOS-13.0+-000000?style=flat&logo=apple&logoColor=white)](https://www.apple.com/ios)
-  [![Version](https://img.shields.io/badge/Version-1.3.1-blue.svg)](https://github.com/paraccoli/flutter_finance_app/releases)
+  [![Version](https://img.shields.io/badge/Version-1.3.2-blue.svg)](https://github.com/paraccoli/flutter_finance_app/releases)
 </div>
 
 ## アプリ概要
@@ -89,6 +89,11 @@
   - 期間別・カテゴリ別エクスポート
   - 他アプリからのデータ移行対応
   - エラーハンドリングと検証機能
+- **MoneyGレガシーCSVサポート**（v1.3.2新機能）
+  - MoneyG v1.2.2形式のCSVファイル完全サポート
+  - 「支出のみ」「収入のみ」「全データ」の3形式対応
+  - 自動フォーマット検出とカテゴリマッピング
+  - 既存データとの重複チェック機能
 - **スワイプアクション**（v1.2.2新機能）
   - 収入・支出リストでのスワイプ編集
   - スワイプ削除（確認ダイアログ付き）
@@ -203,12 +208,12 @@ lib/
 │   ├── help_screen.dart        # ヘルプ画面
 │   ├── budget_setting_screen.dart # 予算設定（v1.2.2改善）
 │   ├── budget_usage_screen.dart   # 予算使用状況（v1.2.2新規）
-│   ├── csv_import_screen.dart     # CSV インポート（v1.2.2新規）
-│   ├── csv_export_screen.dart     # CSV エクスポート（v1.2.2新規）
+│   ├── csv_import_screen.dart     # CSV インポート（v1.2.2新機能）
+│   ├── csv_export_screen.dart     # CSV エクスポート（v1.2.2新機能）
 │   ├── expense_search_screen.dart # 検索画面
 │   ├── custom_category_manager_screen.dart # カスタムカテゴリ管理（v1.3.1新規）
-│   ├── custom_category_editor_screen.dart # カスタムカテゴリ編集（v1.3.1新規）
-│   └── splash_screen.dart      # スプラッシュ画面（v1.2.2新規）
+│   ├── custom_category_editor_screen.dart # カスタムカテゴリ編集（v1.3.1新機能）
+│   └── splash_screen.dart      # スプラッシュ画面（v1.2.2新機能）
 ├── widgets/                     # 再利用可能なウィジェット
 │   ├── expense_form.dart       # 支出入力フォーム
 │   ├── income_form.dart        # 収入入力フォーム
@@ -225,7 +230,39 @@ lib/
     └── (共通機能・ヘルパー関数)
 ```
 
-## 導入方法
+## アプリのダウンロード・インストール
+
+### 📱 一般ユーザー向け
+
+#### 新規インストールの場合
+
+1. [リリースページ](https://github.com/paraccoli/flutter_finance_app/releases)から最新版APKをダウンロード
+2. Android端末でAPKファイルをタップしてインストール
+3. 初回セットアップを完了してご利用開始
+
+#### 既存バージョンからのアップデートの場合
+
+**通常のアップデート手順：**
+1. 既存アプリの上に最新版APKをインストール
+2. データは自動的に引き継がれます
+
+**アップデートでエラーが発生する場合：**
+1. **事前準備**（重要）
+   - アプリ内：設定 → データ管理 → **完全バックアップ**を実行
+   - または：設定 → データ管理 → **データエクスポート**で全データをCSV出力
+2. **アプリの再インストール**
+   - 既存のMoney:Gアプリをアンインストール
+   - 最新版APKをインストール
+3. **データ復元**
+   - 設定 → データ管理 → **バックアップ復元**でJSONファイルを復元
+   - または：設定 → データ管理 → **MoneyGデータインポート**でCSVファイルを復元
+
+⚠️ **重要**: アンインストール前に必ずデータのバックアップまたはエクスポートを実行してください。
+
+### 🔐 動作環境
+
+- **Android**: API Level 21 (Android 5.0) 以上
+- **iOS**: iOS 13.0 以上（今後リリース予定）
 
 ### 前提条件
 
@@ -365,6 +402,23 @@ flutter build linux --release
 - **コントリビューションガイド**: [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## 変更履歴
+
+### バージョン 1.3.2 (2025-07-11)
+
+**MoneyGレガシーCSVサポート強化**
+
+#### 新機能
+
+- **MoneyG v1.2.2 CSVサポート**: 旧バージョンのCSVファイル完全対応
+- **3形式対応**: 「支出のみ」「収入のみ」「全データ」すべてのCSV形式をサポート
+- **自動フォーマット検出**: ヘッダーとファイル名による自動形式判定
+- **正確なカテゴリマッピング**: レガシー形式のカテゴリを正しくマッピング
+
+#### 修正・改善
+
+- **全データ形式のバグ修正**: 支出データ（負の値）が正しくインポートされない問題を解決
+- **CSVインポート精度向上**: データ型判定とエラーハンドリングの改善
+- **デバッグ出力強化**: インポート処理の詳細な追跡とトラブルシューティング対応
 
 ### バージョン 1.3.1 (2025-07-03)
 

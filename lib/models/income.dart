@@ -24,7 +24,8 @@ class Income {
   final int? id; // データベースのプライマリキー
   final double amount; // 金額
   final DateTime date; // 日付
-  final IncomeCategory category; // カテゴリ
+  final IncomeCategory category; // カテゴリ（レガシー用）
+  final int? customCategoryId; // カスタムカテゴリID（新規用）
   final String? note; // メモ（オプション）
 
   Income({
@@ -32,6 +33,7 @@ class Income {
     required this.amount,
     required this.date,
     required this.category,
+    this.customCategoryId,
     this.note,
   });
 
@@ -42,6 +44,7 @@ class Income {
       amount: map['amount'],
       date: DateTime.parse(map['date']),
       category: IncomeCategory.values[map['category']],
+      customCategoryId: map['customCategoryId'],
       note: map['note'],
     );
   }
@@ -53,6 +56,7 @@ class Income {
       'amount': amount,
       'date': date.toIso8601String(),
       'category': category.index,
+      'customCategoryId': customCategoryId,
       'note': note,
     };
   }
@@ -63,6 +67,7 @@ class Income {
     double? amount,
     DateTime? date,
     IncomeCategory? category,
+    int? customCategoryId,
     String? note,
   }) {
     return Income(
@@ -70,7 +75,14 @@ class Income {
       amount: amount ?? this.amount,
       date: date ?? this.date,
       category: category ?? this.category,
+      customCategoryId: customCategoryId ?? this.customCategoryId,
       note: note ?? this.note,
     );
   }
+
+  /// カスタムカテゴリが使用されているかどうかを判定
+  bool get isCustomCategory => customCategoryId != null;
+
+  /// 表示用のカテゴリIDを取得（カスタムカテゴリが優先）
+  int get effectiveCategoryId => customCategoryId ?? category.index;
 }

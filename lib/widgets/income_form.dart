@@ -60,10 +60,19 @@ class _IncomeFormState extends State<IncomeForm> {
         
         // 編集モードの場合、対応するカテゴリアイテムを選択
         if (widget.income != null) {
-          _selectedCategoryItem = categories.firstWhere(
-            (item) => !item.isCustom && item.id == widget.income!.category.index,
-            orElse: () => categories.first,
-          );
+          if (widget.income!.customCategoryId != null) {
+            // カスタムカテゴリの場合
+            _selectedCategoryItem = categories.firstWhere(
+              (item) => item.isCustom && item.id == widget.income!.customCategoryId,
+              orElse: () => categories.first,
+            );
+          } else {
+            // レガシーカテゴリの場合
+            _selectedCategoryItem = categories.firstWhere(
+              (item) => !item.isCustom && item.id == widget.income!.category.index,
+              orElse: () => categories.first,
+            );
+          }
         } else {
           _selectedCategoryItem = categories.first;
         }
@@ -211,6 +220,9 @@ class _IncomeFormState extends State<IncomeForm> {
                     category: _selectedCategoryItem!.isCustom 
                         ? IncomeCategory.other // カスタムカテゴリの場合は一時的にother
                         : IncomeCategory.values[_selectedCategoryItem!.id],
+                    customCategoryId: _selectedCategoryItem!.isCustom 
+                        ? _selectedCategoryItem!.id 
+                        : null,
                     note: _note,
                   );
                   

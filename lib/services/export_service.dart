@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../models/income.dart';
+import '../services/category_service.dart';
 import 'database_service.dart';
 
 class ExportService {
@@ -27,15 +28,38 @@ class ExportService {
         expenses = await databaseService.getExpenses();
       }
 
-      // CSVデータを作成
+      // CSVデータを作成（MoneyGアプリ独自形式）
       List<List<dynamic>> csvData = [
-        ['日付', 'カテゴリ', '金額', 'メモ'], // ヘッダー
+        ['タイプ', '日付', 'カテゴリタイプ', 'カテゴリID', 'カテゴリ名', '金額', 'メモ'], // ヘッダー
       ];
 
+      final categoryService = CategoryService();
+      
       for (final expense in expenses) {
+        String categoryType;
+        String categoryId;
+        String categoryName;
+        
+        if (expense.customCategoryId != null) {
+          categoryType = 'custom';
+          categoryId = expense.customCategoryId.toString();
+          try {
+            categoryName = await categoryService.getExpenseCategoryNameFromExpense(expense);
+          } catch (e) {
+            categoryName = '削除されたカテゴリ';
+          }
+        } else {
+          categoryType = 'legacy';
+          categoryId = expense.category.index.toString();
+          categoryName = expense.category.displayName;
+        }
+        
         csvData.add([
+          'expense',
           DateFormat('yyyy/MM/dd').format(expense.date),
-          expense.category.displayName,
+          categoryType,
+          categoryId,
+          categoryName,
           expense.amount,
           expense.note ?? '',
         ]);
@@ -74,15 +98,38 @@ class ExportService {
         incomes = await databaseService.getIncomes();
       }
 
-      // CSVデータを作成
+      // CSVデータを作成（MoneyGアプリ独自形式）
       List<List<dynamic>> csvData = [
-        ['日付', 'カテゴリ', '金額', 'メモ'], // ヘッダー
+        ['タイプ', '日付', 'カテゴリタイプ', 'カテゴリID', 'カテゴリ名', '金額', 'メモ'], // ヘッダー
       ];
 
+      final categoryService = CategoryService();
+      
       for (final income in incomes) {
+        String categoryType;
+        String categoryId;
+        String categoryName;
+        
+        if (income.customCategoryId != null) {
+          categoryType = 'custom';
+          categoryId = income.customCategoryId.toString();
+          try {
+            categoryName = await categoryService.getIncomeCategoryNameFromIncome(income);
+          } catch (e) {
+            categoryName = '削除されたカテゴリ';
+          }
+        } else {
+          categoryType = 'legacy';
+          categoryId = income.category.index.toString();
+          categoryName = income.category.displayName;
+        }
+        
         csvData.add([
+          'income',
           DateFormat('yyyy/MM/dd').format(income.date),
-          income.category.displayName,
+          categoryType,
+          categoryId,
+          categoryName,
           income.amount,
           income.note ?? '',
         ]);
@@ -130,28 +177,70 @@ class ExportService {
         incomes = await databaseService.getIncomes();
       }
 
-      // CSVデータを作成
+      // CSVデータを作成（MoneyGアプリ統合形式）
       List<List<dynamic>> csvData = [
-        ['日付', 'タイプ', 'カテゴリ', '金額', 'メモ'], // ヘッダー
+        ['タイプ', '日付', 'カテゴリタイプ', 'カテゴリID', 'カテゴリ名', '金額', 'メモ'], // ヘッダー
       ];
 
+      final categoryService = CategoryService();
+      
       // 支出データを追加
       for (final expense in expenses) {
+        String categoryType;
+        String categoryId;
+        String categoryName;
+        
+        if (expense.customCategoryId != null) {
+          categoryType = 'custom';
+          categoryId = expense.customCategoryId.toString();
+          try {
+            categoryName = await categoryService.getExpenseCategoryNameFromExpense(expense);
+          } catch (e) {
+            categoryName = '削除されたカテゴリ';
+          }
+        } else {
+          categoryType = 'legacy';
+          categoryId = expense.category.index.toString();
+          categoryName = expense.category.displayName;
+        }
+        
         csvData.add([
+          'expense',
           DateFormat('yyyy/MM/dd').format(expense.date),
-          '支出',
-          expense.category.displayName,
-          -expense.amount, // 支出は負の値として表示
+          categoryType,
+          categoryId,
+          categoryName,
+          expense.amount,
           expense.note ?? '',
         ]);
       }
 
       // 収入データを追加
       for (final income in incomes) {
+        String categoryType;
+        String categoryId;
+        String categoryName;
+        
+        if (income.customCategoryId != null) {
+          categoryType = 'custom';
+          categoryId = income.customCategoryId.toString();
+          try {
+            categoryName = await categoryService.getIncomeCategoryNameFromIncome(income);
+          } catch (e) {
+            categoryName = '削除されたカテゴリ';
+          }
+        } else {
+          categoryType = 'legacy';
+          categoryId = income.category.index.toString();
+          categoryName = income.category.displayName;
+        }
+        
         csvData.add([
+          'income',
           DateFormat('yyyy/MM/dd').format(income.date),
-          '収入',
-          income.category.displayName,
+          categoryType,
+          categoryId,
+          categoryName,
           income.amount,
           income.note ?? '',
         ]);
@@ -162,8 +251,8 @@ class ExportService {
         if (a == csvData.first) return -1; // ヘッダーを最初に
         if (b == csvData.first) return 1;
         return DateTime.parse(
-          a[0].replaceAll('/', '-'),
-        ).compareTo(DateTime.parse(b[0].replaceAll('/', '-')));
+          a[1].replaceAll('/', '-'), // 日付は2番目のカラム
+        ).compareTo(DateTime.parse(b[1].replaceAll('/', '-')));
       });
 
       // CSVファイルを作成

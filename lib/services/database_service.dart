@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../models/expense.dart';
 import '../models/income.dart';
@@ -40,7 +41,7 @@ class DatabaseService {
     // モバイル/デスクトッププラットフォームで適切なデータベースファクトリを使用
     final db = await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -170,6 +171,34 @@ class DatabaseService {
         debugPrint('incomes テーブル更新中にエラー: $e');
       }
     }
+    
+    if (oldVersion < 6) {
+      // 既存のincomesテーブルにcustomCategoryIdカラムが存在するか確認して、なければ追加
+      try {
+        final result = await db.rawQuery("PRAGMA table_info(incomes)");
+        bool hasCustomCategoryId = result.any((column) => column['name'] == 'customCategoryId');
+        
+        if (!hasCustomCategoryId) {
+          await db.execute('ALTER TABLE incomes ADD COLUMN customCategoryId INTEGER');
+          debugPrint('incomes テーブルにcustomCategoryIdカラムを追加しました（v6）');
+        }
+      } catch (e) {
+        debugPrint('incomes テーブル更新中にエラー（v6）: $e');
+      }
+      
+      // 既存のexpensesテーブルにcustomCategoryIdカラムが存在するか確認して、なければ追加
+      try {
+        final result = await db.rawQuery("PRAGMA table_info(expenses)");
+        bool hasCustomCategoryId = result.any((column) => column['name'] == 'customCategoryId');
+        
+        if (!hasCustomCategoryId) {
+          await db.execute('ALTER TABLE expenses ADD COLUMN customCategoryId INTEGER');
+          debugPrint('expenses テーブルにcustomCategoryIdカラムを追加しました（v6）');
+        }
+      } catch (e) {
+        debugPrint('expenses テーブル更新中にエラー（v6）: $e');
+      }
+    }
   }
 
   // テーブルの作成
@@ -193,6 +222,7 @@ class DatabaseService {
         amount REAL NOT NULL,
         date TEXT NOT NULL,
         category INTEGER NOT NULL,
+        customCategoryId INTEGER,
         note TEXT
       )
     '''); // NISA投資テーブル
@@ -754,6 +784,12 @@ class DatabaseService {
   // テーブル構造の検証と修復
   Future<void> _verifyTableStructure(Database db) async {
     try {
+      // 収入テーブルの構造を確認
+      await _verifyIncomeTableStructure(db);
+      
+      // 支出テーブルの構造を確認
+      await _verifyExpenseTableStructure(db);
+      
       // NISAテーブルの構造を確認
       final tableInfo = await db.rawQuery("PRAGMA table_info(nisa_investments)");
       debugPrint('NISA投資テーブル構造: $tableInfo');
@@ -842,7 +878,12 @@ class DatabaseService {
         await txn.execute('DELETE FROM sqlite_sequence WHERE name IN ("expenses", "incomes", "nisa_investments")');
       });
       
-      debugPrint('すべてのデータが削除されました');
+      // SharedPreferencesからクイック登録データも削除
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('quick_expenses');
+      await prefs.remove('quick_incomes');
+      
+      debugPrint('すべてのデータとクイック登録が削除されました');
     } catch (e) {
       debugPrint('データ削除中にエラーが発生しました: $e');
       rethrow;
@@ -1038,6 +1079,77 @@ class DatabaseService {
     } catch (e) {
       debugPrint('バックアップファイルリストの取得中にエラー: $e');
       return [];
+    }
+  }
+  
+  // データベースの削除（開発・テスト用）
+  static Future<void> deleteDatabase() async {
+    try {
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      String path = join(documentsDirectory.path, 'finance_app.db');
+      
+      // 既存のデータベース接続を閉じる
+      if (_database != null) {
+        await _database!.close();
+        _database = null;
+      }
+      
+      // データベースファイルを削除
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        debugPrint('データベースファイルを削除しました: $path');
+      }
+    } catch (e) {
+      debugPrint('データベース削除中にエラーが発生しました: $e');
+    }
+  }
+
+  /// 収入テーブルの構造を検証
+  Future<void> _verifyIncomeTableStructure(Database db) async {
+    try {
+      final tableInfo = await db.rawQuery("PRAGMA table_info(incomes)");
+      debugPrint('収入テーブル構造: $tableInfo');
+      
+      final columnNames = tableInfo.map((col) => col['name'].toString()).toList();
+      debugPrint('収入テーブルのカラム: $columnNames');
+      
+      // customCategoryIdカラムが存在しない場合は追加
+      if (!columnNames.contains('customCategoryId')) {
+        debugPrint('収入テーブルにcustomCategoryIdカラムが存在しません。追加します...');
+        try {
+          await db.execute('ALTER TABLE incomes ADD COLUMN customCategoryId INTEGER');
+          debugPrint('収入テーブルにcustomCategoryIdカラムを追加しました');
+        } catch (e) {
+          debugPrint('収入テーブルへのカラム追加に失敗しました: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('収入テーブル構造の検証中にエラーが発生しました: $e');
+    }
+  }
+
+  /// 支出テーブルの構造を検証
+  Future<void> _verifyExpenseTableStructure(Database db) async {
+    try {
+      final tableInfo = await db.rawQuery("PRAGMA table_info(expenses)");
+      debugPrint('支出テーブル構造: $tableInfo');
+      
+      final columnNames = tableInfo.map((col) => col['name'].toString()).toList();
+      debugPrint('支出テーブルのカラム: $columnNames');
+      
+      // customCategoryIdカラムが存在しない場合は追加
+      if (!columnNames.contains('customCategoryId')) {
+        debugPrint('支出テーブルにcustomCategoryIdカラムが存在しません。追加します...');
+        try {
+          await db.execute('ALTER TABLE expenses ADD COLUMN customCategoryId INTEGER');
+          debugPrint('支出テーブルにcustomCategoryIdカラムを追加しました');
+        } catch (e) {
+          debugPrint('支出テーブルへのカラム追加に失敗しました: $e');
+        }
+      }
+    } catch (e) {
+      debugPrint('支出テーブル構造の検証中にエラーが発生しました: $e');
     }
   }
 }

@@ -40,9 +40,13 @@ class CategoryService {
     try {
       final customCategories = await _databaseService.getCustomCategoriesByType(CategoryType.income);
       
-      // カスタムカテゴリが存在する場合はそれを使用
+      // カスタムカテゴリが存在する場合はカスタムカテゴリとレガシーカテゴリを統合
       if (customCategories.isNotEmpty) {
-        return customCategories.map((cat) => CategoryItem.fromCustomCategory(cat)).toList();
+        final customItems = customCategories.map((cat) => CategoryItem.fromCustomCategory(cat)).toList();
+        final legacyItems = IncomeCategory.values.map((cat) => CategoryItem.fromIncomeCategory(cat)).toList();
+        
+        // カスタムカテゴリを先頭に配置
+        return [...customItems, ...legacyItems];
       }
       
       // レガシーカテゴリをフォールバックとして使用
@@ -92,6 +96,22 @@ class CategoryService {
       return expense.category.displayName;
     } catch (e) {
       debugPrint('支出カテゴリ名取得エラー: $e');
+      return 'その他';
+    }
+  }
+
+  /// 収入のカテゴリ名を取得（Incomeオブジェクトから）
+  Future<String> getIncomeCategoryNameFromIncome(Income income) async {
+    try {
+      // カスタムカテゴリが設定されている場合
+      if (income.customCategoryId != null) {
+        final category = await _databaseService.getCustomCategoryById(income.customCategoryId!);
+        return category?.name ?? '削除されたカテゴリ';
+      }
+      // レガシーカテゴリの場合
+      return income.category.displayName;
+    } catch (e) {
+      debugPrint('収入カテゴリ名取得エラー: $e');
       return 'その他';
     }
   }

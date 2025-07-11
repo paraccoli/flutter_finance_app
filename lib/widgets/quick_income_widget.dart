@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../models/income.dart';
 import '../services/database_service.dart';
+import '../services/category_service.dart';
 
 class QuickIncomeWidget extends StatefulWidget {
   final VoidCallback? onIncomeAdded;
@@ -27,30 +28,100 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
     final prefs = await SharedPreferences.getInstance();
     final quickIncomeStrings = prefs.getStringList('quick_incomes') ?? [];
     
-    setState(() {
-      _quickIncomes = quickIncomeStrings.map((str) {
-        final parts = str.split('|');
-        if (parts.length == 3) {
-          return {
-            'amount': double.parse(parts[0]),
-            'category': IncomeCategory.values[int.parse(parts[1])],
-            'note': parts[2],
-          };
+    List<Map<String, dynamic>> loadedIncomes = [];
+    
+    for (String str in quickIncomeStrings) {
+      final parts = str.split('|');
+      if (parts.length == 4) {
+        // 新しい形式: amount|categoryType|categoryValue|note
+        try {
+          final amount = double.parse(parts[0]);
+          final categoryType = parts[1];
+          final categoryValue = parts[2];
+          final note = parts[3];
+          
+          CategoryItem? category;
+          if (categoryType == 'custom') {
+            // カスタムカテゴリの場合、データベースから取得
+            try {
+              final customCategory = await DatabaseService().getCustomCategoryById(int.parse(categoryValue));
+              if (customCategory != null) {
+                category = CategoryItem.fromCustomCategory(customCategory);
+              }
+            } catch (e) {
+              debugPrint('カスタムカテゴリ読み込みエラー: $e');
+            }
+          } else {
+            // 列挙型カテゴリの場合
+            final enumIndex = int.parse(categoryValue);
+            if (enumIndex >= 0 && enumIndex < IncomeCategory.values.length) {
+              final enumCategory = IncomeCategory.values[enumIndex];
+              category = CategoryItem(
+                id: enumIndex,
+                name: enumCategory.displayName,
+                icon: enumCategory.icon,
+                color: enumCategory.color,
+                isCustom: false,
+              );
+            }
+          }
+          
+          if (category != null) {
+            loadedIncomes.add({
+              'amount': amount,
+              'category': category,
+              'note': note,
+            });
+          }
+        } catch (e) {
+          debugPrint('クイック収入読み込みエラー: $e');
         }
-        return <String, dynamic>{};
-      }).where((income) => income.isNotEmpty).toList();
+      } else if (parts.length == 3) {
+        // 旧形式: amount|categoryIndex|note
+        try {
+          final amount = double.parse(parts[0]);
+          final categoryIndex = int.parse(parts[1]);
+          final note = parts[2];
+          
+          if (categoryIndex >= 0 && categoryIndex < IncomeCategory.values.length) {
+            final enumCategory = IncomeCategory.values[categoryIndex];
+            final category = CategoryItem(
+              id: categoryIndex,
+              name: enumCategory.displayName,
+              icon: enumCategory.icon,
+              color: enumCategory.color,
+              isCustom: false,
+            );
+            
+            loadedIncomes.add({
+              'amount': amount,
+              'category': category,
+              'note': note,
+            });
+          }
+        } catch (e) {
+          debugPrint('旧形式クイック収入読み込みエラー: $e');
+        }
+      }
+    }
+    
+    setState(() {
+      _quickIncomes = loadedIncomes;
     });
   }
 
   Future<void> _saveQuickIncomes() async {
     final prefs = await SharedPreferences.getInstance();
     final quickIncomeStrings = _quickIncomes.map((income) {
-      return '${income['amount']}|${income['category'].index}|${income['note']}';
+      final category = income['category'] as CategoryItem;
+      final categoryType = category.isCustom ? 'custom' : 'enum';
+      final categoryValue = category.isCustom ? category.id.toString() : category.id.toString();
+      return '${income['amount']}|$categoryType|$categoryValue|${income['note']}';
     }).toList();
     await prefs.setStringList('quick_incomes', quickIncomeStrings);
   }
 
-  Future<void> _addQuickIncome(double amount, IncomeCategory category, String note) async {
+  Future<void> _addQuickIncome(double amount, CategoryItem category, String note) async {
     final newQuickIncome = {
       'amount': amount,
       'category': category,
@@ -73,9 +144,13 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
 
   Future<void> _registerIncome(Map<String, dynamic> quickIncome) async {
     try {
+      final categoryItem = quickIncome['category'] as CategoryItem;
       final income = Income(
         amount: quickIncome['amount'],
-        category: quickIncome['category'],
+        category: categoryItem.isCustom 
+            ? IncomeCategory.other 
+            : IncomeCategory.values[categoryItem.id],
+        customCategoryId: categoryItem.isCustom ? categoryItem.id : null,
         date: DateTime.now(),
         note: quickIncome['note'],
       );
@@ -106,7 +181,7 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
 
   void _showAddQuickIncomeDialog() {
     double amount = 0;
-    IncomeCategory category = IncomeCategory.salary;
+    CategoryItem? selectedCategory;
     String note = '';
 
     showDialog(
@@ -114,51 +189,65 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
       builder: (context) => AlertDialog(
         title: const Text('クイック収入の追加'),
         content: StatefulBuilder(
-          builder: (context, setState) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: '金額',
-                  prefixText: '¥',
-                ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  amount = double.tryParse(value) ?? 0;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<IncomeCategory>(
-                decoration: const InputDecoration(labelText: 'カテゴリ'),
-                value: category,
-                onChanged: (value) {
-                  setState(() {
-                    category = value!;
-                  });
-                },
-                items: IncomeCategory.values.map((cat) {
-                  return DropdownMenuItem(
-                    value: cat,
-                    child: Row(
-                      children: [
-                        Icon(_getIncomeIcon(cat), color: _getIncomeColor(cat)),
-                        const SizedBox(width: 8),
-                        Text(_getIncomeCategoryName(cat)),
-                      ],
+          builder: (context, setState) => FutureBuilder<List<CategoryItem>>(
+            future: CategoryService().getIncomeCategories(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              final categories = snapshot.data ?? [];
+              if (categories.isNotEmpty && selectedCategory == null) {
+                selectedCategory = categories.first;
+              }
+              
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: '金額',
+                      prefixText: '¥',
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                decoration: const InputDecoration(
-                  labelText: 'メモ（任意）',
-                ),
-                onChanged: (value) {
-                  note = value;
-                },
-              ),
-            ],
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      amount = double.tryParse(value) ?? 0;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<CategoryItem>(
+                    decoration: const InputDecoration(labelText: 'カテゴリ'),
+                    value: selectedCategory,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value!;
+                      });
+                    },
+                    items: categories.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat,
+                        child: Row(
+                          children: [
+                            Icon(cat.icon, color: cat.color),
+                            const SizedBox(width: 8),
+                            Text(cat.name),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'メモ（任意）',
+                    ),
+                    onChanged: (value) {
+                      note = value;
+                    },
+                  ),
+                ],
+              );
+            },
           ),
         ),
         actions: [
@@ -168,8 +257,8 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
           ),
           TextButton(
             onPressed: () async {
-              if (amount > 0) {
-                await _addQuickIncome(amount, category, note);
+              if (amount > 0 && selectedCategory != null) {
+                await _addQuickIncome(amount, selectedCategory!, note);
                 if (context.mounted) Navigator.pop(context);
               }
             },
@@ -178,54 +267,6 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
         ],
       ),
     );
-  }
-  String _getIncomeCategoryName(IncomeCategory category) {
-    switch (category) {
-      case IncomeCategory.salary:
-        return '給与';
-      case IncomeCategory.bonus:
-        return 'ボーナス';
-      case IncomeCategory.investment:
-        return '投資収益';
-      case IncomeCategory.sideJob:
-        return '副業';
-      case IncomeCategory.gift:
-        return '贈与・お祝い';
-      case IncomeCategory.other:
-        return 'その他';
-    }
-  }
-  IconData _getIncomeIcon(IncomeCategory category) {
-    switch (category) {
-      case IncomeCategory.salary:
-        return Icons.work;
-      case IncomeCategory.bonus:
-        return Icons.card_giftcard;
-      case IncomeCategory.investment:
-        return Icons.trending_up;
-      case IncomeCategory.sideJob:
-        return Icons.computer;
-      case IncomeCategory.gift:
-        return Icons.redeem;
-      case IncomeCategory.other:
-        return Icons.more_horiz;
-    }
-  }
-  Color _getIncomeColor(IncomeCategory category) {
-    switch (category) {
-      case IncomeCategory.salary:
-        return Colors.blue;
-      case IncomeCategory.bonus:
-        return Colors.purple;
-      case IncomeCategory.investment:
-        return Colors.orange;
-      case IncomeCategory.sideJob:
-        return Colors.teal;
-      case IncomeCategory.gift:
-        return Colors.pink;
-      case IncomeCategory.other:
-        return Colors.grey;
-    }
   }
 
   @override
@@ -266,6 +307,8 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
                 children: _quickIncomes.asMap().entries.map((entry) {
                   final index = entry.key;
                   final quickIncome = entry.value;
+                  final categoryItem = quickIncome['category'] as CategoryItem;
+                  
                   return GestureDetector(
                     onLongPress: () async {
                       final result = await showDialog<bool>(
@@ -273,7 +316,7 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
                         builder: (context) => AlertDialog(
                           title: const Text('削除確認'),
                           content: Text(
-                            'クイック収入「${_getIncomeCategoryName(quickIncome['category'])} ¥${NumberFormat('#,###').format(quickIncome['amount'])}」を削除しますか？',
+                            'クイック収入「${categoryItem.name} ¥${NumberFormat('#,###').format(quickIncome['amount'])}」を削除しますか？',
                           ),
                           actions: [
                             TextButton(
@@ -293,15 +336,15 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
                     },
                     child: ActionChip(
                       avatar: Icon(
-                        _getIncomeIcon(quickIncome['category']),
+                        categoryItem.icon,
                         size: 16,
-                        color: _getIncomeColor(quickIncome['category']),
+                        color: categoryItem.color,
                       ),
                       label: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _getIncomeCategoryName(quickIncome['category']),
+                            categoryItem.name,
                             style: const TextStyle(fontSize: 12),
                           ),
                           Text(

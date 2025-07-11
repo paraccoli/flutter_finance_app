@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/income.dart';
 import '../services/database_service.dart';
+import '../services/category_service.dart';
 
 class IncomeViewModel extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
@@ -90,7 +91,58 @@ class IncomeViewModel extends ChangeNotifier {
     Map<IncomeCategory, double> totals = {};
 
     for (var income in _incomes) {
-      totals[income.category] = (totals[income.category] ?? 0) + income.amount;
+      // カスタムカテゴリの場合は「その他」に分類
+      IncomeCategory category = income.customCategoryId != null 
+          ? IncomeCategory.other 
+          : income.category;
+      totals[category] = (totals[category] ?? 0) + income.amount;
+    }
+
+    return totals;
+  }
+
+  // カスタムカテゴリ対応の合計金額を計算
+  Future<Map<String, Map<String, dynamic>>> getCustomCategoryTotals() async {
+    Map<String, Map<String, dynamic>> totals = {};
+    final categoryService = CategoryService();
+
+    for (var income in _incomes) {
+      String categoryKey;
+      String categoryName;
+      Color categoryColor;
+      IconData categoryIcon;
+      
+      if (income.customCategoryId != null) {
+        // カスタムカテゴリの場合
+        categoryKey = 'custom_${income.customCategoryId}';
+        try {
+          categoryName = await categoryService.getIncomeCategoryNameFromIncome(income);
+          final customCategory = await DatabaseService().getCustomCategoryById(income.customCategoryId!);
+          categoryColor = customCategory?.color ?? Colors.grey;
+          categoryIcon = customCategory?.icon ?? Icons.category;
+        } catch (e) {
+          categoryName = '削除されたカテゴリ';
+          categoryColor = Colors.grey;
+          categoryIcon = Icons.category;
+        }
+      } else {
+        // レガシーカテゴリの場合
+        categoryKey = 'legacy_${income.category.index}';
+        categoryName = income.category.displayName;
+        categoryColor = income.category.color;
+        categoryIcon = income.category.icon;
+      }
+      
+      if (!totals.containsKey(categoryKey)) {
+        totals[categoryKey] = {
+          'name': categoryName,
+          'color': categoryColor,
+          'icon': categoryIcon,
+          'amount': 0.0,
+        };
+      }
+      
+      totals[categoryKey]!['amount'] = (totals[categoryKey]!['amount'] as double) + income.amount;
     }
 
     return totals;

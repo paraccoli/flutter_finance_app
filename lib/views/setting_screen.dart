@@ -14,6 +14,7 @@ import 'budget_setting_screen.dart';
 import 'budget_usage_screen.dart';
 import 'expense_search_screen.dart';
 import 'csv_import_screen.dart';
+import 'moneyg_import_screen.dart';
 import 'splash_screen.dart';
 import 'theme_selection_screen.dart';
 import 'custom_theme_creator_screen.dart';
@@ -384,6 +385,14 @@ class _SettingScreenState extends State<SettingScreen> {
                     subtitle: const Text('クレジットカード明細をインポート'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => _navigateToCSVImport(),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.upload_file, color: Colors.green),
+                    title: const Text('MoneyGデータインポート'),
+                    subtitle: const Text('MoneyG形式のCSVファイルをインポート'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => _navigateToMoneyGImport(),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -1287,6 +1296,14 @@ class _SettingScreenState extends State<SettingScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CSVImportScreen()),
+    );
+  }
+
+  // MoneyGデータインポート画面への遷移
+  void _navigateToMoneyGImport() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MoneyGImportScreen()),
     );
   }
 

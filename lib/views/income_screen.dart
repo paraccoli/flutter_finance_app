@@ -5,6 +5,8 @@ import '../viewmodels/income_viewmodel.dart';
 import '../models/income.dart';
 import '../widgets/income_form.dart';
 import '../widgets/quick_income_widget.dart';
+import '../services/category_service.dart';
+import '../services/database_service.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class IncomeScreen extends StatelessWidget {
@@ -13,7 +15,6 @@ class IncomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = Provider.of<IncomeViewModel>(context);
-    final categoryTotals = viewModel.getCategoryTotals();
     final monthlyTotals = viewModel.getMonthlyTotals();
 
     // 合計金額を計算
@@ -78,16 +79,31 @@ class IncomeScreen extends StatelessWidget {
                   ),
                 const SizedBox(height: 16),
 
-                // カテゴリ円グラフ
-                if (categoryTotals.isNotEmpty)
-                  _buildCategoryPieChart(categoryTotals)
-                else
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text('カテゴリデータがありません'),
-                    ),
-                  ),
+                // カテゴリ円グラフ（カスタムカテゴリ対応）
+                FutureBuilder<Map<String, Map<String, dynamic>>>(
+                  future: viewModel.getCustomCategoryTotals(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text('グラフの読み込みに失敗しました'),
+                        ),
+                      );
+                    } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                      return _buildCustomCategoryPieChart(snapshot.data!);
+                    } else {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: Text('カテゴリデータがありません'),
+                        ),
+                      );
+                    }
+                  },
+                ),
                 const SizedBox(height: 16),
 
                 // 収入リスト
@@ -273,7 +289,7 @@ class IncomeScreen extends StatelessWidget {
     });
   }
 
-  Widget _buildCategoryPieChart(Map<IncomeCategory, double> categoryTotals) {
+  Widget _buildCustomCategoryPieChart(Map<String, Map<String, dynamic>> categoryTotals) {
     return AspectRatio(
       aspectRatio: 1.3,
       child: Card(
@@ -293,12 +309,12 @@ class IncomeScreen extends StatelessWidget {
                   PieChartData(
                     sectionsSpace: 2,
                     centerSpaceRadius: 40,
-                    sections: _getCategorySections(categoryTotals),
+                    sections: _getCustomCategorySections(categoryTotals),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
-              _buildCategoryLegend(categoryTotals),
+              _buildCustomCategoryLegend(categoryTotals),
             ],
           ),
         ),
@@ -306,25 +322,18 @@ class IncomeScreen extends StatelessWidget {
     );
   }
 
-  List<PieChartSectionData> _getCategorySections(
-    Map<IncomeCategory, double> categoryTotals,
+  List<PieChartSectionData> _getCustomCategorySections(
+    Map<String, Map<String, dynamic>> categoryTotals,
   ) {
     final List<PieChartSectionData> sections = [];
 
-    // カテゴリごとの色を定義
-    final Map<IncomeCategory, Color> categoryColors = {
-      IncomeCategory.salary: Colors.green,
-      IncomeCategory.bonus: Colors.blue,
-      IncomeCategory.investment: Colors.purple,
-      IncomeCategory.sideJob: Colors.orange,
-      IncomeCategory.gift: Colors.pink,
-      IncomeCategory.other: Colors.grey,
-    };
-
-    categoryTotals.forEach((category, amount) {
+    categoryTotals.forEach((categoryKey, categoryData) {
+      final amount = categoryData['amount'] as double;
+      final color = categoryData['color'] as Color;
+      
       sections.add(
         PieChartSectionData(
-          color: categoryColors[category] ?? Colors.grey,
+          color: color,
           value: amount,
           title: '¥${amount.toStringAsFixed(0)}',
           radius: 50,
@@ -340,26 +349,30 @@ class IncomeScreen extends StatelessWidget {
     return sections;
   }
 
-  Widget _buildCategoryLegend(Map<IncomeCategory, double> categoryTotals) {
+  Widget _buildCustomCategoryLegend(Map<String, Map<String, dynamic>> categoryTotals) {
     return Wrap(
       spacing: 16.0,
       runSpacing: 8.0,
-      children: categoryTotals.keys.map((category) {
-        final Map<IncomeCategory, Color> categoryColors = {
-          IncomeCategory.salary: Colors.green,
-          IncomeCategory.bonus: Colors.blue,
-          IncomeCategory.investment: Colors.purple,
-          IncomeCategory.sideJob: Colors.orange,
-          IncomeCategory.gift: Colors.pink,
-          IncomeCategory.other: Colors.grey,
-        };
+      children: categoryTotals.values.map((categoryData) {
+        final name = categoryData['name'] as String;
+        final color = categoryData['color'] as Color;
+        final icon = categoryData['icon'] as IconData;
 
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 12, height: 12, color: categoryColors[category]),
+            Container(
+              width: 12, 
+              height: 12, 
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             const SizedBox(width: 4),
-            Text(category.toString()),
+            Icon(icon, size: 16, color: color),
+            const SizedBox(width: 4),
+            Text(name),
           ],
         );
       }).toList(),
@@ -416,23 +429,45 @@ class IncomeScreen extends StatelessWidget {
               }
               return false;
             },
-            child: ListTile(
-              leading: CircleAvatar(
-                backgroundColor: _getCategoryColor(income.category),
-                child: Icon(
-                  _getCategoryIcon(income.category),
-                  color: Colors.white,
-                ),
-              ),
-              title: Text(
-                '¥${NumberFormat('#,###').format(income.amount)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green,
-                ),
-              ),              subtitle: Text(
-                '${income.category} - ${DateFormat('yyyy/MM/dd').format(income.date)}',
-              ),
+            child: FutureBuilder<Map<String, dynamic>>(
+              future: _getIncomeDisplayInfo(income),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.grey,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    title: Text('読み込み中...'),
+                  );
+                }
+                
+                final displayInfo = snapshot.data ?? {
+                  'name': 'その他',
+                  'color': Colors.grey,
+                  'icon': Icons.category,
+                };
+                
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: displayInfo['color'] as Color,
+                    child: Icon(
+                      displayInfo['icon'] as IconData,
+                      color: Colors.white,
+                    ),
+                  ),
+                  title: Text(
+                    '¥${NumberFormat('#,###').format(income.amount)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${displayInfo['name']} - ${DateFormat('yyyy/MM/dd').format(income.date)}',
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -493,6 +528,39 @@ class IncomeScreen extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// 収入の表示情報を取得（カスタムカテゴリ対応）
+  Future<Map<String, dynamic>> _getIncomeDisplayInfo(Income income) async {
+    try {
+      if (income.customCategoryId != null) {
+        // カスタムカテゴリの場合
+        final categoryService = CategoryService();
+        final databaseService = DatabaseService();
+        final categoryName = await categoryService.getIncomeCategoryNameFromIncome(income);
+        final customCategory = await databaseService.getCustomCategoryById(income.customCategoryId!);
+        
+        return {
+          'name': categoryName,
+          'color': customCategory?.color ?? Colors.grey,
+          'icon': customCategory?.icon ?? Icons.category,
+        };
+      } else {
+        // レガシーカテゴリの場合
+        return {
+          'name': income.category.displayName,
+          'color': _getCategoryColor(income.category),
+          'icon': _getCategoryIcon(income.category),
+        };
+      }
+    } catch (e) {
+      debugPrint('カテゴリ表示情報取得エラー: $e');
+      return {
+        'name': 'その他',
+        'color': Colors.grey,
+        'icon': Icons.category,
+      };
+    }
   }
 
   Color _getCategoryColor(IncomeCategory category) {
