@@ -77,7 +77,6 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
           debugPrint('クイック収入読み込みエラー: $e');
         }
       } else if (parts.length == 3) {
-        // 旧形式: amount|categoryIndex|note
         try {
           final amount = double.parse(parts[0]);
           final categoryIndex = int.parse(parts[1]);
@@ -100,7 +99,7 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
             });
           }
         } catch (e) {
-          debugPrint('旧形式クイック収入読み込みエラー: $e');
+          debugPrint('クイック収入読み込みエラー: $e');
         }
       }
     }

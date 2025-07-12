@@ -16,7 +16,7 @@ class QuickExpenseWidget extends StatefulWidget {
 
 class _QuickExpenseWidgetState extends State<QuickExpenseWidget> {
   List<Map<String, dynamic>> _quickExpenses = [];
-  final CategoryService _categoryService = CategoryService();
+  final DatabaseService _databaseService = DatabaseService();
 
   @override
   void initState() {
@@ -28,80 +28,142 @@ class _QuickExpenseWidgetState extends State<QuickExpenseWidget> {
     final prefs = await SharedPreferences.getInstance();
     final quickExpenseStrings = prefs.getStringList('quick_expenses') ?? [];
     
-    setState(() {
-      _quickExpenses = quickExpenseStrings.map((str) {
-        final parts = str.split('|');
-        if (parts.length >= 3) {
-          // 新しい形式: amount|categoryType|categoryValue|note
-          if (parts.length == 4) {
-            return {
-              'amount': double.parse(parts[0]),
-              'categoryType': parts[1], // 'enum' or 'custom'
-              'categoryValue': parts[2], // enum index or custom category id
-              'note': parts[3],
-            };
+    List<Map<String, dynamic>> loadedExpenses = [];
+    
+    for (String str in quickExpenseStrings) {
+      final parts = str.split('|');
+      if (parts.length == 4) {
+        // 新しい形式: amount|categoryType|categoryValue|note
+        try {
+          final amount = double.parse(parts[0]);
+          final categoryType = parts[1];
+          final categoryValue = parts[2];
+          final note = parts[3];
+          
+          CategoryItem? category;
+          if (categoryType == 'custom') {
+            // カスタムカテゴリの場合、データベースから取得
+            try {
+              final customCategory = await DatabaseService().getCustomCategoryById(int.parse(categoryValue));
+              if (customCategory != null) {
+                category = CategoryItem.fromCustomCategory(customCategory);
+              }
+            } catch (e) {
+              debugPrint('カスタムカテゴリ読み込みエラー: $e');
+            }
+          } else {
+            // 列挙型カテゴリの場合
+            final enumIndex = int.parse(categoryValue);
+            if (enumIndex >= 0 && enumIndex < ExpenseCategory.values.length) {
+              final enumCategory = ExpenseCategory.values[enumIndex];
+              category = CategoryItem(
+                id: enumIndex,
+                name: enumCategory.displayName,
+                icon: enumCategory.icon,
+                color: enumCategory.color,
+                isCustom: false,
+              );
+            }
           }
-          // 古い形式: amount|categoryIndex|note (legacy)
-          return {
-            'amount': double.parse(parts[0]),
-            'categoryType': 'enum',
-            'categoryValue': parts[1],
-            'note': parts[2],
-          };
+          
+          if (category != null) {
+            loadedExpenses.add({
+              'amount': amount,
+              'category': category,
+              'note': note,
+            });
+          }
+        } catch (e) {
+          debugPrint('クイック支出読み込みエラー: $e');
         }
-        return <String, dynamic>{};
-      }).where((expense) => expense.isNotEmpty).toList();
+      } else if (parts.length == 3) {
+        try {
+          final amount = double.parse(parts[0]);
+          final categoryIndex = int.parse(parts[1]);
+          final note = parts[2];
+          
+          if (categoryIndex >= 0 && categoryIndex < ExpenseCategory.values.length) {
+            final enumCategory = ExpenseCategory.values[categoryIndex];
+            final category = CategoryItem(
+              id: categoryIndex,
+              name: enumCategory.displayName,
+              icon: enumCategory.icon,
+              color: enumCategory.color,
+              isCustom: false,
+            );
+            
+            loadedExpenses.add({
+              'amount': amount,
+              'category': category,
+              'note': note,
+            });
+          }
+        } catch (e) {
+          debugPrint('クイック支出読み込みエラー: $e');
+        }
+      }
+    }
+    
+    setState(() {
+      _quickExpenses = loadedExpenses;
     });
   }
 
   Future<void> _saveQuickExpenses() async {
     final prefs = await SharedPreferences.getInstance();
     final quickExpenseStrings = _quickExpenses.map((expense) {
-      return '${expense['amount']}|${expense['categoryType']}|${expense['categoryValue']}|${expense['note']}';
+      final category = expense['category'] as CategoryItem;
+      final categoryType = category.isCustom ? 'custom' : 'enum';
+      final categoryValue = category.isCustom ? category.id.toString() : category.id.toString();
+      return '${expense['amount']}|$categoryType|$categoryValue|${expense['note']}';
     }).toList();
     await prefs.setStringList('quick_expenses', quickExpenseStrings);
   }
 
-  Future<void> _addQuickExpense() async {
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      builder: (context) => _QuickExpenseDialog(categoryService: _categoryService),
-    );
+  Future<void> _addQuickExpense(double amount, CategoryItem category, String note) async {
+    final newQuickExpense = {
+      'amount': amount,
+      'category': category,
+      'note': note,
+    };
 
-    if (result != null) {
-      setState(() {
-        _quickExpenses.add(result);
-      });
-      await _saveQuickExpenses();
-    }
+    setState(() {
+      _quickExpenses.add(newQuickExpense);
+    });
+
+    await _saveQuickExpenses();
+  }
+
+  Future<void> _removeQuickExpense(int index) async {
+    setState(() {
+      _quickExpenses.removeAt(index);
+    });
+    await _saveQuickExpenses();
   }
 
   Future<void> _registerExpense(Map<String, dynamic> quickExpense) async {
     try {
-      final categoryType = quickExpense['categoryType'] as String;
-      final categoryValue = quickExpense['categoryValue'] as String;
-      
+      final categoryItem = quickExpense['category'] as CategoryItem;
       final expense = Expense(
         amount: quickExpense['amount'],
+        category: categoryItem.isCustom 
+            ? ExpenseCategory.other 
+            : ExpenseCategory.values[categoryItem.id],
+        customCategoryId: categoryItem.isCustom ? categoryItem.id : null,
         date: DateTime.now(),
-        category: categoryType == 'enum' 
-          ? ExpenseCategory.values[int.parse(categoryValue)]
-          : ExpenseCategory.other, // カスタムカテゴリの場合はデフォルト
-        customCategoryId: categoryType == 'custom' 
-          ? int.parse(categoryValue)
-          : null,
         note: quickExpense['note'],
       );
 
-      await DatabaseService().insertExpense(expense);
+      await _databaseService.insertExpense(expense);
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('支出を登録しました: ${NumberFormat('#,###').format(expense.amount)}円'),
+            content: Text('支出を登録しました: ¥${NumberFormat('#,###').format(expense.amount)}'),
             backgroundColor: Colors.green,
           ),
         );
+        
         widget.onExpenseAdded?.call();
       }
     } catch (e) {
@@ -116,111 +178,98 @@ class _QuickExpenseWidgetState extends State<QuickExpenseWidget> {
     }
   }
 
-  Future<void> _showDeleteConfirmDialog(Map<String, dynamic> expense) async {
-    final categoryInfo = await _getCategoryDisplayInfo(expense);
-    
-    if (!mounted) return;
-    
+  void _showAddQuickExpenseDialog() {
+    double amount = 0;
+    CategoryItem? selectedCategory;
+    String note = '';
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('クイック登録を削除'),
-          content: Text(
-            '以下のクイック登録を削除しますか？\n\n'
-            '金額: ${NumberFormat('#,###').format(expense['amount'])}円\n'
-            'カテゴリ: ${categoryInfo['name']}\n'
-            'メモ: ${expense['note']}',
+      builder: (context) => AlertDialog(
+        title: const Text('クイック支出の追加'),
+        content: StatefulBuilder(
+          builder: (context, setState) => FutureBuilder<List<CategoryItem>>(
+            future: CategoryService().getExpenseCategories(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              
+              final categories = snapshot.data ?? [];
+              if (categories.isNotEmpty && selectedCategory == null) {
+                selectedCategory = categories.first;
+              }
+              
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: '金額',
+                      prefixText: '¥',
+                    ),
+                    keyboardType: TextInputType.number,
+                    onChanged: (value) {
+                      amount = double.tryParse(value) ?? 0;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<CategoryItem>(
+                    decoration: const InputDecoration(labelText: 'カテゴリ'),
+                    value: selectedCategory,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value!;
+                      });
+                    },
+                    items: categories.map((cat) {
+                      return DropdownMenuItem(
+                        value: cat,
+                        child: Row(
+                          children: [
+                            Icon(cat.icon, color: cat.color),
+                            const SizedBox(width: 8),
+                            Text(cat.name),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: const InputDecoration(
+                      labelText: 'メモ（任意）',
+                    ),
+                    onChanged: (value) {
+                      note = value;
+                    },
+                  ),
+                ],
+              );
+            },
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('キャンセル'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _quickExpenses.remove(expense);
-                });
-                _saveQuickExpenses();
-              },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
-              child: const Text('削除'),
-            ),
-          ],
-        );
-      },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (amount > 0 && selectedCategory != null) {
+                await _addQuickExpense(amount, selectedCategory!, note);
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
+            child: const Text('追加'),
+          ),
+        ],
+      ),
     );
-  }
-
-  Future<Map<String, dynamic>> _getCategoryDisplayInfo(Map<String, dynamic> expense) async {
-    final categoryType = expense['categoryType'] as String;
-    final categoryValue = expense['categoryValue'] as String;
-    
-    if (categoryType == 'enum') {
-      final category = ExpenseCategory.values[int.parse(categoryValue)];
-      return {
-        'name': category.displayName,
-        'icon': category.icon,
-        'color': category.color,
-      };
-    } else if (categoryType == 'custom') {
-      try {
-        final databaseService = DatabaseService();
-        final customCategory = await databaseService.getCustomCategoryById(int.parse(categoryValue));
-        if (customCategory != null) {
-          return {
-            'name': customCategory.name,
-            'icon': customCategory.icon,
-            'color': customCategory.color,
-          };
-        }
-      } catch (e) {
-        // エラー時はデフォルト値を返す
-      }
-    }
-    
-    return {
-      'name': 'その他',
-      'icon': Icons.category,
-      'color': Colors.grey,
-    };
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_quickExpenses.isEmpty) {
-      return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const Icon(Icons.flash_on, size: 48, color: Colors.grey),
-              const SizedBox(height: 8),
-              const Text(
-                'クイック登録',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'よく使う支出を登録して\nワンタップで記録できます',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _addQuickExpense,
-                child: const Text('クイック支出を追加'),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -231,246 +280,100 @@ class _QuickExpenseWidgetState extends State<QuickExpenseWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'クイック登録',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  'クイック支出',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
-                  onPressed: _addQuickExpense,
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: _showAddQuickExpenseDialog,
                   tooltip: 'クイック支出を追加',
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _quickExpenses.map((expense) {
-                return _QuickExpenseChip(
-                  expense: expense,
-                  onTap: () => _registerExpense(expense),
-                  onDelete: () => _showDeleteConfirmDialog(expense),
-                );
-              }).toList(),
-            ),
+            const SizedBox(height: 8),
+            if (_quickExpenses.isEmpty)
+              const Text(
+                'クイック支出が設定されていません。\n右の+ボタンから追加してください。',
+                style: TextStyle(color: Colors.grey),
+              )
+            else
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
+                children: _quickExpenses.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final quickExpense = entry.value;
+                  final categoryItem = quickExpense['category'] as CategoryItem;
+                  
+                  return GestureDetector(
+                    onLongPress: () async {
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('削除確認'),
+                          content: Text(
+                            'クイック支出「${categoryItem.name} ¥${NumberFormat('#,###').format(quickExpense['amount'])}」を削除しますか？',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('キャンセル'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('削除'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (result == true) {
+                        _removeQuickExpense(index);
+                      }
+                    },
+                    child: ActionChip(
+                      avatar: Icon(
+                        categoryItem.icon,
+                        size: 16,
+                        color: categoryItem.color,
+                      ),
+                      label: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            categoryItem.name,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          Text(
+                            '¥${NumberFormat('#,###').format(quickExpense['amount'])}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      onPressed: () => _registerExpense(quickExpense),
+                    ),
+                  );
+                }).toList(),
+              ),
+            if (_quickExpenses.isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'タップで登録、長押しで削除',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class _QuickExpenseChip extends StatelessWidget {
-  final Map<String, dynamic> expense;
-  final VoidCallback onTap;
-  final VoidCallback onDelete;
-
-  const _QuickExpenseChip({
-    required this.expense,
-    required this.onTap,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _getCategoryDisplayInfo(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(
-            width: 100,
-            height: 32,
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        final categoryInfo = snapshot.data ?? {
-          'name': 'その他',
-          'icon': Icons.category,
-          'color': Colors.grey,
-        };
-
-        return GestureDetector(
-          onLongPress: onDelete,
-          child: ActionChip(
-            avatar: Icon(
-              categoryInfo['icon'],
-              size: 18,
-              color: categoryInfo['color'],
-            ),
-            label: Text('${NumberFormat('#,###').format(expense['amount'])}円'),
-            onPressed: onTap,
-            tooltip: '${expense['note']} (${categoryInfo['name']})\n長押しで削除',
-          ),
-        );
-      },
-    );
-  }
-
-  Future<Map<String, dynamic>> _getCategoryDisplayInfo() async {
-    final categoryType = expense['categoryType'] as String;
-    final categoryValue = expense['categoryValue'] as String;
-    
-    if (categoryType == 'enum') {
-      final category = ExpenseCategory.values[int.parse(categoryValue)];
-      return {
-        'name': category.displayName,
-        'icon': category.icon,
-        'color': category.color,
-      };
-    } else if (categoryType == 'custom') {
-      try {
-        final databaseService = DatabaseService();
-        final customCategory = await databaseService.getCustomCategoryById(int.parse(categoryValue));
-        if (customCategory != null) {
-          return {
-            'name': customCategory.name,
-            'icon': customCategory.icon,
-            'color': customCategory.color,
-          };
-        }
-      } catch (e) {
-        // エラー時はデフォルト値を返す
-      }
-    }
-    
-    return {
-      'name': 'その他',
-      'icon': Icons.category,
-      'color': Colors.grey,
-    };
-  }
-}
-
-class _QuickExpenseDialog extends StatefulWidget {
-  final CategoryService categoryService;
-  
-  const _QuickExpenseDialog({required this.categoryService});
-
-  @override
-  State<_QuickExpenseDialog> createState() => _QuickExpenseDialogState();
-}
-
-class _QuickExpenseDialogState extends State<_QuickExpenseDialog> {
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _noteController = TextEditingController();
-  CategoryItem? _selectedCategory;
-  List<CategoryItem> _categories = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadCategories();
-  }
-
-  Future<void> _loadCategories() async {
-    try {
-      final categories = await widget.categoryService.getExpenseCategories();
-      setState(() {
-        _categories = categories;
-        if (_categories.isNotEmpty) {
-          _selectedCategory = _categories.first;
-        }
-      });
-    } catch (e) {
-      // エラー時はデフォルトカテゴリを使用
-      setState(() {
-        _categories = [
-          CategoryItem(
-            id: 0,
-            name: '食費',
-            icon: Icons.fastfood,
-            color: Colors.orange,
-            isCustom: false,
-          ),
-        ];
-        _selectedCategory = _categories.first;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _noteController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('クイック支出を追加'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            controller: _amountController,
-            decoration: const InputDecoration(
-              labelText: '金額',
-              suffixText: '円',
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 16),
-          if (_categories.isNotEmpty)
-            DropdownButtonFormField<CategoryItem>(
-              value: _selectedCategory,
-              decoration: const InputDecoration(
-                labelText: 'カテゴリ',
-              ),
-              items: _categories.map((category) {
-                return DropdownMenuItem(
-                  value: category,
-                  child: Row(
-                    children: [
-                      Icon(category.icon, size: 20, color: category.color),
-                      const SizedBox(width: 8),
-                      Text(category.name),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (category) {
-                setState(() {
-                  _selectedCategory = category;
-                });
-              },
-            ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _noteController,
-            decoration: const InputDecoration(
-              labelText: 'メモ',
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('キャンセル'),
-        ),
-        TextButton(
-          onPressed: () {
-            final amount = double.tryParse(_amountController.text);
-            if (amount != null && amount > 0 && _selectedCategory != null) {
-              Navigator.pop(context, {
-                'amount': amount,
-                'categoryType': _selectedCategory!.isCustom ? 'custom' : 'enum',
-                'categoryValue': _selectedCategory!.isCustom
-                  ? _selectedCategory!.id.toString()
-                  : _selectedCategory!.id.toString(),
-                'note': _noteController.text.trim(),
-              });
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('有効な金額を入力してください')),
-              );
-            }
-          },
-          child: const Text('追加'),
-        ),
-      ],
     );
   }
 }
