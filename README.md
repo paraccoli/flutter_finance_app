@@ -319,15 +319,6 @@ minSdkVersion 21
 targetSdkVersion 34
 ```
 
-### iOS設定（v1.2.2対応済み）
-
-詳細なiOS設定については [iOS版インストールガイド](release/ios/INSTALL_iOS.md) をご確認ください。
-`ios/Runner/Info.plist`に必要な権限設定が含まれています：
-
-- ファイルアクセス権限（CSV機能用）
-- 通知権限
-- ユーザーインターフェース設定
-
 ### 通知設定
 
 アプリ初回起動時に通知権限の許可が求められます。
