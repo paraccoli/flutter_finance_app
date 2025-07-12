@@ -232,7 +232,7 @@ lib/
 
 ## アプリのダウンロード・インストール
 
-### 📱 一般ユーザー向け
+### 一般ユーザー向け
 
 #### 新規インストールの場合
 
@@ -243,10 +243,12 @@ lib/
 #### 既存バージョンからのアップデートの場合
 
 **通常のアップデート手順：**
+
 1. 既存アプリの上に最新版APKをインストール
 2. データは自動的に引き継がれます
 
 **アップデートでエラーが発生する場合：**
+
 1. **事前準備**（重要）
    - アプリ内：設定 → データ管理 → **完全バックアップ**を実行
    - または：設定 → データ管理 → **データエクスポート**で全データをCSV出力
@@ -259,7 +261,7 @@ lib/
 
 ⚠️ **重要**: アンインストール前に必ずデータのバックアップまたはエクスポートを実行してください。
 
-### 🔐 動作環境
+### 動作環境
 
 - **Android**: API Level 21 (Android 5.0) 以上
 - **iOS**: iOS 13.0 以上（今後リリース予定）
@@ -267,7 +269,7 @@ lib/
 ### 前提条件
 
 - **Flutter SDK 3.8.1以上**
-- **Dart SDK 3.8.1以上** 
+- **Dart SDK 3.8.1以上**
 - **Android Studio** または **VS Code**（推奨）
 - **Android SDK** (Android開発の場合)
 - **Xcode** (iOS開発の場合)
@@ -275,22 +277,26 @@ lib/
 ### インストール手順
 
 1. **リポジトリのクローン**
+
    ```bash
    git clone https://github.com/paraccoli/flutter_finance_app.git
    cd flutter_finance_app
    ```
 
 2. **依存関係のインストール**
+
    ```bash
    flutter pub get
    ```
 
 3. **アプリアイコンの生成**
+
    ```bash
    flutter pub run flutter_launcher_icons:main
    ```
 
 4. **アプリの実行**
+
    ```bash
    # デバッグモード
    flutter run
@@ -307,6 +313,7 @@ lib/
 ### Android設定
 
 `android/app/build.gradle`で最小SDKを確認：
+
 ```gradle
 minSdkVersion 21
 targetSdkVersion 34
@@ -316,17 +323,20 @@ targetSdkVersion 34
 
 詳細なiOS設定については [iOS版インストールガイド](release/ios/INSTALL_iOS.md) をご確認ください。
 `ios/Runner/Info.plist`に必要な権限設定が含まれています：
+
 - ファイルアクセス権限（CSV機能用）
 - 通知権限
 - ユーザーインターフェース設定
 
 ### 通知設定
+
 アプリ初回起動時に通知権限の許可が求められます。
 設定画面から通知のON/OFFと時刻を変更できます。
 
 ## 開発・ビルド
 
 ### 開発環境での実行
+
 ```bash
 # ホットリロード付きで実行
 flutter run
@@ -339,6 +349,7 @@ flutter devices
 ```
 
 ### コード解析・テスト
+
 ```bash
 # コード解析
 flutter analyze
@@ -351,6 +362,7 @@ flutter test --coverage
 ```
 
 ### ビルド
+
 ```bash
 # Android APK
 flutter build apk --release
@@ -405,8 +417,6 @@ flutter build linux --release
 
 ### バージョン 1.3.2 (2025-07-11)
 
-**MoneyGレガシーCSVサポート強化**
-
 #### 新機能
 
 - **MoneyG v1.2.2 CSVサポート**: 旧バージョンのCSVファイル完全対応
@@ -421,8 +431,6 @@ flutter build linux --release
 - **デバッグ出力強化**: インポート処理の詳細な追跡とトラブルシューティング対応
 
 ### バージョン 1.3.1 (2025-07-03)
-
-**カスタムカテゴリ機能追加**
 
 #### 新機能
 
