@@ -2,7 +2,7 @@
 
 <div align="center">
 
-  <img src="assets/icon/app_icon.png" alt="Money:G Logo" width="120" height="120">
+  <img src="assets/icon/banner.png" alt="Money:G Logo">
 
   [![Flutter](https://img.shields.io/badge/Flutter-3.32.2+-02569B?style=flat&logo=flutter&logoColor=white)](https://flutter.dev)
   [![Dart](https://img.shields.io/badge/Dart-3.8.1+-0175C2?style=flat&logo=dart&logoColor=white)](https://dart.dev)
