@@ -74,6 +74,9 @@ dependencies:
   # 通知機能
   flutter_local_notifications: ^19.2.1
   timezone: ^0.10.1
+  
+  # チュートリアル機能
+  showcaseview: ^3.0.0
 
 dev_dependencies:
   flutter_test:

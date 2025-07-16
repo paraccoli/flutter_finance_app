@@ -4,7 +4,8 @@ import 'dart:async';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  final bool showTutorial;
+  const SplashScreen({super.key, required this.showTutorial});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -51,7 +52,9 @@ class _SplashScreenState extends State<SplashScreen>
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(showTutorial: widget.showTutorial),
+          ),
         );
       }
     });

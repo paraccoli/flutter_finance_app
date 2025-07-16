@@ -7,12 +7,14 @@ class ExpenseForm extends StatefulWidget {
   final Function(Expense) onSave;
   final VoidCallback? onCancel; // キャンセル時の処理
   final Expense? expense; // 編集時に使用
+  final bool isTutorial; // チュートリアルモード
 
   const ExpenseForm({
     super.key,
     required this.onSave,
     this.onCancel,
     this.expense,
+    this.isTutorial = false,
   });
 
   @override
@@ -45,9 +47,15 @@ class _ExpenseFormState extends State<ExpenseForm> {
       _note = widget.expense!.note;
     } else {
       // 新規作成モードの場合はデフォルト値をセット
-      _amount = 0;
+      if (widget.isTutorial) {
+        // チュートリアルモードの場合はサンプルデータを設定
+        _amount = 500;
+        _note = 'チュートリアル用サンプル';
+      } else {
+        _amount = 0;
+        _note = null;
+      }
       _date = DateTime.now();
-      _note = null;
     }
 
     _dateController.text = DateFormat('yyyy/MM/dd').format(_date);

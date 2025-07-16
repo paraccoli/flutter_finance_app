@@ -8,6 +8,8 @@ import '../services/notification_service.dart';
 import '../services/export_service.dart';
 import '../services/database_service.dart';
 import '../services/budget_service.dart';
+import '../services/tutorial_service.dart';
+import 'home_screen.dart';
 import '../utils/app_theme.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
@@ -459,8 +461,16 @@ class _SettingScreenState extends State<SettingScreen> {
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.quiz, color: Colors.purple),
-                    title: const Text('初回チュートリアル'),
-                    subtitle: const Text('アプリの基本的な使い方を学ぶ'),
+                    title: const Text('チュートリアルを再表示'),
+                    subtitle: const Text('アプリの基本的な使い方を再度学ぶ'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => _showTutorialRestartDialog(),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.help_outline, color: Colors.blue),
+                    title: const Text('使い方（簡易版）'),
+                    subtitle: const Text('基本機能の簡単な説明'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => _showTutorialDialog(),
                   ),
@@ -768,7 +778,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // スプラッシュスクリーンを経由してホーム画面に戻る
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const SplashScreen()),
+          MaterialPageRoute(builder: (context) => const SplashScreen(showTutorial: false)),
           (route) => false,
         );
       }
@@ -1214,7 +1224,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
         // スプラッシュスクリーンを経由してホーム画面に戻る
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const SplashScreen()),
+          MaterialPageRoute(builder: (context) => const SplashScreen(showTutorial: false)),
           (route) => false,
         );
       }
@@ -1230,6 +1240,46 @@ class _SettingScreenState extends State<SettingScreen> {
         );
       }
     }
+  }
+
+  // チュートリアル再開ダイアログ
+  void _showTutorialRestartDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('チュートリアル再表示'),
+          content: const Text(
+            'アプリの基本的な使い方を再度ご案内します。\n'
+            'ホーム画面に戻ってチュートリアルを開始しますか？',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final navigator = Navigator.of(context);
+                navigator.pop();
+                
+                // チュートリアル状態をリセット
+                await TutorialService.resetTutorial();
+                
+                // ホーム画面でチュートリアルを開始
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(showTutorial: true),
+                  ),
+                  (route) => false,
+                );
+              },
+              child: const Text('開始'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // チュートリアルダイアログ
