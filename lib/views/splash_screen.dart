@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'home_screen.dart';
+import '../services/admob_service.dart';
 
 class SplashScreen extends StatefulWidget {
-  final bool showTutorial;
-  const SplashScreen({super.key, required this.showTutorial});
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -48,19 +48,42 @@ class _SplashScreenState extends State<SplashScreen>
     // アニメーション開始
     _animationController.forward();
 
-    // 3秒後にホーム画面に遷移
+    // 3秒後にホーム画面に遷移（広告表示含む）
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(showTutorial: widget.showTutorial),
-          ),
-        );
+        _navigateToHome();
       }
     });
 
     if (kDebugMode) {
       debugPrint('スプラッシュスクリーン初期化完了');
+    }
+  }
+
+  /// ホーム画面への遷移（広告表示含む）
+  Future<void> _navigateToHome() async {
+    final admobService = AdMobService.instance;
+    
+    // プレミアム版でない場合は全画面広告をロードして表示
+    if (!admobService.isPremiumUser) {
+      try {
+        await admobService.loadInterstitialAd();
+        await admobService.showInterstitialAd();
+        
+        // 広告が閉じられるまで少し待つ
+        await Future.delayed(const Duration(milliseconds: 1000));
+      } catch (e) {
+        if (kDebugMode) {
+          debugPrint('広告表示エラー: $e');
+        }
+      }
+    }
+    
+    // ホーム画面に遷移
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     }
   }
 

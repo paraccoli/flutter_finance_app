@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:showcaseview/showcaseview.dart';
 import 'dart:io' show Platform;
 import 'viewmodels/expense_viewmodel.dart';
 import 'viewmodels/nisa_viewmodel.dart';
@@ -13,7 +12,8 @@ import 'views/splash_screen.dart';
 import 'widgets/background_widget.dart';
 import 'services/database_service.dart';
 import 'services/notification_service.dart';
-import 'services/tutorial_service.dart';
+import 'services/admob_service.dart';
+import 'services/purchase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,9 +23,7 @@ void main() async {
     // デスクトッププラットフォーム用の初期化（Windows/Linux/macOS）
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
-  }
-
-  // データベースの初期化を確認
+  }  // データベースの初期化を確認
   try {
     final db = await DatabaseService().database;
     // デバッグビルドでのみログ出力
@@ -58,15 +56,35 @@ void main() async {
     }
   }
 
-  // チュートリアルの状態を確認
-  final showTutorial = !(await TutorialService.isTutorialCompleted());
+  // AdMobサービスの初期化
+  try {
+    await AdMobService().initialize();
+    if (kDebugMode) {
+      debugPrint('AdMobサービス初期化成功');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('AdMobサービス初期化エラー: $e');
+    }
+  }
 
-  runApp(MyApp(showTutorial: showTutorial));
+  // アプリ内購入サービスの初期化
+  try {
+    await PurchaseService().initialize();
+    if (kDebugMode) {
+      debugPrint('アプリ内購入サービス初期化成功');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('アプリ内購入サービス初期化エラー: $e');
+    }
+  }
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final bool showTutorial;
-  const MyApp({super.key, required this.showTutorial});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -77,24 +95,19 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => NisaViewModel()),
         ChangeNotifierProvider(create: (_) => IncomeViewModel()),
         ChangeNotifierProvider(create: (_) => AssetAnalysisViewModel()),
-      ],
-      child: Consumer<ThemeViewModel>(
-        builder: (context, themeViewModel, _) {
-          return AnimatedTheme(
+      ],      child: Consumer<ThemeViewModel>(
+        builder: (context, themeViewModel, _) {          return AnimatedTheme(
             data: themeViewModel.themeData,
-            duration: const Duration(milliseconds: 300),
-            child: ShowCaseWidget(
-              builder: (context) => MaterialApp(
-                title: 'Money:G',
-                theme: themeViewModel.themeData,
-                builder: (context, child) {
-                  return BackgroundWidget(
-                    themeType: themeViewModel.currentTheme,
-                    child: child ?? const SizedBox.shrink(),
-                  );
-                },
-                home: SplashScreen(showTutorial: showTutorial),
-              ),
+            duration: const Duration(milliseconds: 300),            child: MaterialApp(
+              title: 'Money:G',
+              theme: themeViewModel.themeData,
+              builder: (context, child) {
+                return BackgroundWidget(
+                  themeType: themeViewModel.currentTheme,
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
+              home: const SplashScreen(),
             ),
           );
         },

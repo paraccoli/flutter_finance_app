@@ -43,3 +43,47 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android signing keys
+/android/key.properties
+/android/app/*.jks
+/android/app/*.keystore
+
+# Finance App specific sensitive data
+# AdMob production keys (keep test keys only)
+lib/config/production_admob_keys.dart
+lib/config/production_keys.dart
+
+# Database files (user data should not be in version control)
+*.db
+*.sqlite
+*.sqlite3
+
+# API keys and sensitive configuration
+.env
+.env.local
+.env.production
+.env.staging
+
+# Google Services configuration files (if containing real keys)
+android/app/google-services.json.production
+ios/Runner/GoogleService-Info.plist.production
+
+# App Bundle and APK files
+*.aab
+*.apk
+
+# Upload keystore backup
+upload-keystore.jks.backup
+
+# Local configuration
+local.properties
+
+# VS Code specific (uncomment if needed)
+.vscode/settings.json
+.vscode/launch.json
+
+# Temporary development files
+temp/
+tmp/
+*.tmp
