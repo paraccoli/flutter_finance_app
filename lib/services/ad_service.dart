@@ -9,12 +9,13 @@ class AdService {
   factory AdService() => _instance;
   AdService._internal();
 
-  // テスト用広告ID（本番では実際の広告IDに変更）
-  static const String _bannerAdUnitIdAndroid = 'ca-app-pub-3940256099942544/6300978111';
+  // 広告ユニットID（Android/iOS）
+  // Android: 本番に差し替え済み
+  static const String _bannerAdUnitIdAndroid = 'ca-app-pub-8022356071909704/2848726476';
   static const String _bannerAdUnitIdIOS = 'ca-app-pub-3940256099942544/2934735716';
   static const String _interstitialAdUnitIdAndroid = 'ca-app-pub-3940256099942544/1033173712';
   static const String _interstitialAdUnitIdIOS = 'ca-app-pub-3940256099942544/4411468910';
-  static const String _rewardedAdUnitIdAndroid = 'ca-app-pub-3940256099942544/5224354917';
+  static const String _rewardedAdUnitIdAndroid = 'ca-app-pub-8022356071909704/8211474616';
   static const String _rewardedAdUnitIdIOS = 'ca-app-pub-3940256099942544/1712485313';
 
   BannerAd? _bannerAd;
