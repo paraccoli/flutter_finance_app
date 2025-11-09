@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../services/database_service.dart';
 import '../services/category_service.dart';
+import '../services/ad_service.dart';
 
 class QuickExpenseWidget extends StatefulWidget {
   final VoidCallback? onExpenseAdded;
@@ -156,6 +157,12 @@ class _QuickExpenseWidgetState extends State<QuickExpenseWidget> {
 
       await _databaseService.insertExpense(expense);
       
+      // 新規データ登録後に全画面広告を表示（無料版のみ）
+      try {
+        await AdService().showInterstitialAd();
+      } catch (e) {
+        debugPrint('インタースティシャル表示エラー: $e');
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

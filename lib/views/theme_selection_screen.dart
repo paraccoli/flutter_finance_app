@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../utils/app_theme.dart';
 import '../models/custom_theme_settings.dart';
+import '../services/ad_service.dart';
+import 'premium_purchase_screen.dart';
+import 'reward_premium_screen.dart';
 import 'custom_theme_creator_screen.dart';
 
 /// テーマ選択画面
@@ -117,13 +120,54 @@ class ThemeSelectionScreen extends StatelessWidget {
                                 customTheme: customTheme,
                                 isSelected: isSelected,
                                 onTap: () {
-                                  themeViewModel.applyCustomTheme(customTheme);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('${customTheme.name}テーマに変更しました'),
-                                      duration: const Duration(seconds: 1),
-                                    ),
-                                  );
+                                  // カスタムテーマはプレミアム限定
+                                  if (AdService().isPremium || AdService().isTemporaryPremiumActive) {
+                                    themeViewModel.applyCustomTheme(customTheme);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('${customTheme.name}テーマに変更しました'),
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                  } else {
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Text('プレミアム限定機能'),
+                                        content: const Text('カスタムテーマはプレミアム限定です。アップグレードしますか？'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(ctx).pop(),
+                                            child: const Text('キャンセル'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.of(ctx).pop();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => const RewardPremiumScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: const Text('広告視聴で体験'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.of(ctx).pop();
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => const PremiumPurchaseScreen(),
+                                                ),
+                                              );
+                                            },
+                                            child: const Text('プレミアムを見る'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }
                                 },
                               );
                             },
@@ -137,12 +181,53 @@ class ThemeSelectionScreen extends StatelessWidget {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CustomThemeCreatorScreen(),
-                ),
-              );
+              // カスタム作成はプレミアム限定
+              if (AdService().isPremium || AdService().isTemporaryPremiumActive) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CustomThemeCreatorScreen(),
+                  ),
+                );
+              } else {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('プレミアム限定'),
+                    content: const Text('カスタムテーマ作成はプレミアム限定です。アップグレードしますか？'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('キャンセル'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RewardPremiumScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('広告視聴で体験'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PremiumPurchaseScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('プレミアムを見る'),
+                      ),
+                    ],
+                  ),
+                );
+              }
             },
             icon: const Icon(Icons.palette),
             label: const Text('カスタム作成'),

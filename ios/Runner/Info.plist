@@ -64,5 +64,15 @@
 	<string>CSVファイルの保存にフォトライブラリへのアクセスが必要です</string>
 	<key>NSDocumentsFolderUsageDescription</key>
 	<string>CSVファイルのインポート・エクスポートにDocumentsフォルダへのアクセスが必要です</string>
+	<!-- AdMob設定 -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<key>SKAdNetworkItems</key>
+	<array>
+		<dict>
+			<key>SKAdNetworkIdentifier</key>
+			<string>cstr6suwn9.skadnetwork</string>
+		</dict>
+	</array>
 </dict>
 </plist>

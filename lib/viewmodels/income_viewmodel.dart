@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/income.dart';
 import '../services/database_service.dart';
 import '../services/category_service.dart';
+import '../services/ad_service.dart';
 
 class IncomeViewModel extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
@@ -51,6 +52,11 @@ class IncomeViewModel extends ChangeNotifier {
       debugPrint('IncomeViewModel: 収入の追加が完了しました');
       await loadIncomes();
       debugPrint('IncomeViewModel: 収入リストの再読み込みが完了しました');
+      try {
+        await AdService().showInterstitialAd();
+      } catch (e) {
+        debugPrint('インタースティシャル表示エラー: $e');
+      }
     } catch (e, stackTrace) {
       debugPrint('IncomeViewModel: 収入追加中にエラーが発生しました: $e');
       debugPrint('スタックトレース: $stackTrace');

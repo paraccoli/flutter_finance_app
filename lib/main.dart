@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' show Platform;
@@ -12,9 +13,17 @@ import 'views/splash_screen.dart';
 import 'widgets/background_widget.dart';
 import 'services/database_service.dart';
 import 'services/notification_service.dart';
+import 'services/ad_service.dart';
+import 'services/purchase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // UI設定の最適化
+  if (Platform.isAndroid) {
+    // Androidでのフレーム描画を最適化
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
 
   // プラットフォームに応じてSQLiteの初期化
   if (!Platform.isAndroid && !Platform.isIOS) {
@@ -51,6 +60,32 @@ void main() async {
   } catch (e) {
     if (kDebugMode) {
       debugPrint('通知サービス初期化エラー: $e');
+    }
+  }
+
+  // 広告サービスの初期化
+  if (Platform.isAndroid || Platform.isIOS) {
+    try {
+      await AdService().initialize();
+      if (kDebugMode) {
+        debugPrint('広告サービス初期化成功');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('広告サービス初期化エラー: $e');
+      }
+    }
+
+    // アプリ内課金サービスの初期化
+    try {
+      await PurchaseService().initialize();
+      if (kDebugMode) {
+        debugPrint('アプリ内課金サービス初期化成功');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('アプリ内課金サービス初期化エラー: $e');
+      }
     }
   }
 

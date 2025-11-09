@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:cross_file/cross_file.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../services/notification_service.dart';
 import '../services/export_service.dart';
 import '../services/database_service.dart';
 import '../services/budget_service.dart';
+import '../services/ad_service.dart';
 import '../utils/app_theme.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
@@ -20,6 +23,8 @@ import 'theme_selection_screen.dart';
 import 'custom_theme_creator_screen.dart';
 import 'custom_theme_manager_screen.dart';
 import 'custom_category_manager_screen.dart';
+import 'premium_purchase_screen.dart';
+import 'reward_premium_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -157,14 +162,25 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('カスタムテーマ作成'),
                     subtitle: const Text('自分好みのテーマを作成'),
                     leading: const Icon(Icons.palette),
-                    trailing: const Icon(Icons.arrow_forward_ios),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _premiumTag(),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_ios),
+                      ],
+                    ),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CustomThemeCreatorScreen(),
-                        ),
-                      );
+                      if (AdService().isPremium || AdService().isTemporaryPremiumActive) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CustomThemeCreatorScreen(),
+                          ),
+                        );
+                      } else {
+                        _showPremiumRequiredDialog();
+                      }
                     },
                   ),
                   const Divider(height: 1),
@@ -172,15 +188,26 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('カスタムテーマ管理'),
                     subtitle: const Text('作成したテーマの編集・削除'),
                     leading: const Icon(Icons.manage_accounts),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CustomThemeManagerScreen(),
-                        ),
-                      );
-                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _premiumTag(),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_ios),
+                      ],
+                    ),
+                      onTap: () {
+                        if (AdService().isPremium || AdService().isTemporaryPremiumActive) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CustomThemeManagerScreen(),
+                            ),
+                          );
+                        } else {
+                          _showPremiumRequiredDialog();
+                        }
+                      },
                   ),
                 ],
               ),
@@ -206,6 +233,76 @@ class _SettingScreenState extends State<SettingScreen> {
                       ),
                     ),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // プレミアム・広告設定
+            _buildSectionTitle('プレミアム・広告', isDark),
+            const SizedBox(height: 16),
+            _buildCard(
+              isDark,
+              Column(
+                children: [
+                  if (AdService().isPremium) ...[
+                    ListTile(
+                      leading: const Icon(Icons.stars, color: Colors.purple),
+                      title: const Text('プレミアム版'),
+                      subtitle: const Text('広告なしで快適にご利用中'),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.purple,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          '有効',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    ListTile(
+                      leading: const Icon(Icons.stars, color: Colors.purple),
+                      title: const Text('プレミアム版にアップグレード'),
+                      subtitle: const Text('広告を削除してより快適に'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PremiumPurchaseScreen(),
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline, color: Colors.blue),
+                      title: const Text('広告について'),
+                      subtitle: const Text('アプリの継続開発をサポートしています'),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.help_outline),
+                        onPressed: () => _showAdInfoDialog(),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.play_circle_fill, color: Colors.green),
+                      title: const Text('広告視聴でプレミアム体験'),
+                      subtitle: const Text('24時間の一時的プレミアム機能を解放'),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RewardPremiumScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -407,16 +504,42 @@ class _SettingScreenState extends State<SettingScreen> {
                     leading: const Icon(Icons.backup),
                     title: const Text('データのバックアップ'),
                     subtitle: const Text('すべてのデータをバックアップ'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _showBackupDialog(),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _premiumTag(),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                      ],
+                    ),
+                    onTap: () {
+                      if (AdService().isPremium || AdService().isTemporaryPremiumActive) {
+                        _showBackupDialog();
+                      } else {
+                        _showPremiumRequiredDialog();
+                      }
+                    },
                   ),
                   const Divider(height: 1),
                   ListTile(
                     leading: const Icon(Icons.restore),
                     title: const Text('データの復元'),
                     subtitle: const Text('バックアップからデータを復元'),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => _showRestoreDialog(),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _premiumTag(),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.arrow_forward_ios, size: 16),
+                      ],
+                    ),
+                    onTap: () {
+                      if (AdService().isPremium || AdService().isTemporaryPremiumActive) {
+                        _showRestoreDialog();
+                      } else {
+                        _showPremiumRequiredDialog();
+                      }
+                    },
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -832,7 +955,7 @@ class _SettingScreenState extends State<SettingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '📋 バックアップ内容',
+                'バックアップ内容',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               SizedBox(height: 8),
@@ -842,7 +965,7 @@ class _SettingScreenState extends State<SettingScreen> {
               Text('• 作成日時と統計情報'),
               SizedBox(height: 12),
               Text(
-                '💾 保存場所',
+                '保存場所',
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               SizedBox(height: 8),
@@ -937,23 +1060,36 @@ class _SettingScreenState extends State<SettingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                '✅ バックアップが正常に作成されました',
+                'バックアップが正常に作成されました',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              const Text('📁 ファイル名:'),
+              const Text('ファイル名:'),
               Text(
                 fileName,
                 style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
               ),
               const SizedBox(height: 8),
-              const Text('💾 保存場所: アプリ内ドキュメントフォルダ'),
+              const Text('保存場所: アプリ内ドキュメントフォルダ'),
             ],
           ),
-          actions: [
+            actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('閉じる'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  // 共有ダイアログでファイルをエクスポート
+                  await Share.shareXFiles([XFile(filePath)], text: 'Money:G バックアップファイル');
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('共有に失敗しました: $e')));
+                  }
+                }
+              },
+              child: const Text('端末に保存 / 共有'),
             ),
           ],
         );
@@ -979,7 +1115,7 @@ class _SettingScreenState extends State<SettingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '⚠️ 重要な注意事項',
+                '重要な注意事項',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
@@ -1150,14 +1286,14 @@ class _SettingScreenState extends State<SettingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                '⚠️ 現在のデータがすべて削除され、以下のバックアップで置き換えられます：',
+                '現在のデータがすべて削除され、以下のバックアップで置き換えられます：',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.red,
                 ),
               ),
               const SizedBox(height: 8),
-              Text('📁 $fileName'),
+              Text('$fileName'),
               const SizedBox(height: 12),
               const Text(
                 'この操作は取り消せません。続行しますか？',
@@ -1244,21 +1380,21 @@ class _SettingScreenState extends State<SettingScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '💰 支出・収入の記録',
+                '支出・収入の記録',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Text('下部のタブから金額とカテゴリを選択して記録'),
               SizedBox(height: 12),
-              Text('📊 月次レポート', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('月次レポート', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('月ごとの支出内訳をグラフで確認'),
               SizedBox(height: 12),
-              Text('📈 資産分析', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('資産分析', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('収支のトレンドと貯蓄の推移を分析'),
               SizedBox(height: 12),
-              Text('💹 NISA管理', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('NISA管理', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('投資記録と運用成果を管理'),
               SizedBox(height: 12),
-              Text('⚙️ 設定', style: TextStyle(fontWeight: FontWeight.bold)),
+              Text('設定', style: TextStyle(fontWeight: FontWeight.bold)),
               Text('通知設定やデータ管理機能'),
             ],
           ),
@@ -1396,5 +1532,123 @@ class _SettingScreenState extends State<SettingScreen> {
         ).showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
       }
     }
+  }
+
+  // 広告情報ダイアログ
+  void _showAdInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('広告について'),
+        content: const SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'なぜ広告が表示されるのか',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              SizedBox(height: 8),
+              Text('Money:Gは無料でご利用いただけるアプリです。'),
+              Text('広告収入により、以下の活動を継続できます：'),
+              SizedBox(height: 8),
+              Text('• アプリの継続的な改善'),
+              Text('• 新機能の開発'),
+              Text('• バグ修正とセキュリティ更新'),
+              SizedBox(height: 12),
+              Text(
+                'プレミアム版について',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              SizedBox(height: 8),
+              Text('プレミアム版では：'),
+              Text('• すべての広告が非表示'),
+              Text('• より快適な操作体験'),
+              Text('• 開発者支援'),
+              SizedBox(height: 12),
+              Text(
+                'ご理解とご協力をお願いいたします 🙏',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('閉じる'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PremiumPurchaseScreen(),
+                ),
+              );
+            },
+            child: const Text('プレミアム版を見る'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // プレミアムバッジウィジェット
+  Widget _premiumTag() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.purple,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: const Text(
+        'プレミアム',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  // プレミアム必須ダイアログ
+  void _showPremiumRequiredDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('プレミアム限定機能'),
+        content: const Text('この機能はプレミアム限定です。アップグレードしますか？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RewardPremiumScreen()),
+              );
+            },
+            child: const Text('広告視聴で体験'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PremiumPurchaseScreen()),
+              );
+            },
+            child: const Text('プレミアムを見る'),
+          ),
+        ],
+      ),
+    );
   }
 }

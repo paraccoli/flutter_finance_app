@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../services/database_service.dart';
 import '../services/category_service.dart';
+import '../services/ad_service.dart';
 
 class ExpenseViewModel extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
@@ -66,6 +67,11 @@ class ExpenseViewModel extends ChangeNotifier {
       debugPrint('ExpenseViewModel: 支出の追加が完了しました');
       await loadExpenses();
       debugPrint('ExpenseViewModel: 支出リストの再読み込みが完了しました');
+      try {
+        await AdService().showInterstitialAd();
+      } catch (e) {
+        debugPrint('インタースティシャル表示エラー: $e');
+      }
     } catch (e, stackTrace) {
       debugPrint('ExpenseViewModel: 支出追加中にエラーが発生しました: $e');
       debugPrint('スタックトレース: $stackTrace');

@@ -1,4 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">    <application
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Android 13+ の通知権限 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <application
         android:label="Money:G"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
@@ -29,6 +32,11 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        
+        <!-- Google Mobile Ads Application ID (テスト用) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
