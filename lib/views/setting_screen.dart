@@ -10,7 +10,7 @@ import '../services/notification_service.dart';
 import '../services/export_service.dart';
 import '../services/database_service.dart';
 import '../services/budget_service.dart';
-import '../services/ad_service.dart';
+import '../services/admob_service.dart';
 import '../utils/app_theme.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
@@ -23,8 +23,7 @@ import 'theme_selection_screen.dart';
 import 'custom_theme_creator_screen.dart';
 import 'custom_theme_manager_screen.dart';
 import 'custom_category_manager_screen.dart';
-import 'premium_purchase_screen.dart';
-import 'reward_premium_screen.dart';
+import 'premium_upgrade_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -34,18 +33,17 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  bool _notificationEnabled = true;
-  String _notificationTime = '21:00';
   final NotificationService _notificationService = NotificationService();
-
+  bool _notificationEnabled = false;
+  String _notificationTime = '20:00';
+  bool _budgetAlertEnabled = false;
+  
+  String _appName = '';
   String _appVersion = '';
-  String _appName = ''; // 統計情報
   int _totalExpenses = 0;
   int _totalIncomes = 0;
   int _totalNisaInvestments = 0;
-
-  // 予算管理関連
-  bool _budgetAlertEnabled = true;
+  bool _isPremium = false;
 
   @override
   void initState() {
@@ -53,7 +51,20 @@ class _SettingScreenState extends State<SettingScreen> {
     _loadNotificationSettings();
     _loadAppInfo();
     _loadStatistics();
-    _loadBudgetSettings();
+    _loadBudgetAlertSetting();
+    _loadPremiumStatus();
+  }
+
+  Future<void> _loadPremiumStatus() async {
+    try {
+      final adMobService = AdMobService();
+      await adMobService.initialize(); // 初期化を待つ
+      setState(() {
+        _isPremium = adMobService.isPremiumUser;
+      });
+    } catch (e) {
+      debugPrint('プレミアム状態の読み込みに失敗: $e');
+    }
   }
 
   Future<void> _loadNotificationSettings() async {
@@ -73,60 +84,39 @@ class _SettingScreenState extends State<SettingScreen> {
     });
   }
 
-  Future<void> _loadBudgetSettings() async {
-    await BudgetService.initialize();
+  Future<void> _loadStatistics() async {
+    try {
+      final dbService = DatabaseService();
+      final expenses = await dbService.getExpenses();
+      final incomes = await dbService.getIncomes();
+      final nisaInvestments = await dbService.getNisaInvestments();
+
+      setState(() {
+        _totalExpenses = expenses.length;
+        _totalIncomes = incomes.length;
+        _totalNisaInvestments = nisaInvestments.length;
+      });
+    } catch (e) {
+      debugPrint('統計データの読み込みに失敗: $e');
+    }
+  }
+
+  Future<void> _loadBudgetAlertSetting() async {
+    final enabled = await BudgetService.isBudgetAlertEnabled();
     setState(() {
-      _budgetAlertEnabled = BudgetService.isBudgetAlertEnabledSync();
+      _budgetAlertEnabled = enabled;
     });
   }
 
-  Future<void> _loadStatistics() async {
-    try {
-      final db = DatabaseService();
-
-      // 支出データ数を取得
-      final expenseCount = await db.database.then((database) async {
-        final result = await database.rawQuery(
-          'SELECT COUNT(*) as count FROM expenses',
-        );
-        return result.first['count'] as int;
-      });
-
-      // 収入データ数を取得
-      final incomeCount = await db.database.then((database) async {
-        final result = await database.rawQuery(
-          'SELECT COUNT(*) as count FROM incomes',
-        );
-        return result.first['count'] as int;
-      });
-
-      // NISA投資データ数を取得
-      final nisaCount = await db.database.then((database) async {
-        final result = await database.rawQuery(
-          'SELECT COUNT(*) as count FROM nisa_investments',
-        );
-        return result.first['count'] as int;
-      });
-      setState(() {
-        _totalExpenses = expenseCount;
-        _totalIncomes = incomeCount;
-        _totalNisaInvestments = nisaCount; // NISAデータ数として表示
-      });
-    } catch (e) {
-      debugPrint('統計情報の取得に失敗しました: $e'); // エラー時はデフォルト値を設定
-      setState(() {
-        _totalExpenses = 0;
-        _totalIncomes = 0;
-        _totalNisaInvestments = 0;
-      });
-    }
-  }
   @override
   Widget build(BuildContext context) {
-    final themeViewModel = Provider.of<ThemeViewModel>(context);    final isDark = themeViewModel.isDarkMode || 
+    final themeViewModel = Provider.of<ThemeViewModel>(context);
+    final isDark = themeViewModel.isDarkMode || 
         themeViewModel.currentTheme == AppThemeType.cyber ||
         themeViewModel.currentTheme == AppThemeType.cosmic ||
-        themeViewModel.currentTheme == AppThemeType.cosmos;return Scaffold(
+        themeViewModel.currentTheme == AppThemeType.cosmos;
+        
+    return Scaffold(
       backgroundColor: isDark ? Theme.of(context).scaffoldBackgroundColor : null,
       appBar: AppBar(
         title: const Text('設定'),
@@ -139,9 +129,62 @@ class _SettingScreenState extends State<SettingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // プレミアム版セクション
+            _buildSectionTitle('プレミアム', isDark),
+            const SizedBox(height: 16),
+            _buildCard(
+              isDark,
+              Column(
+                children: [
+                  if (_isPremium) ...[
+                    ListTile(
+                      leading: const Icon(Icons.star, color: Colors.amber),
+                      title: const Text('プレミアム版'),
+                      subtitle: const Text('広告なしでご利用いただけます'),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.amber,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text(
+                          '有効',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    ListTile(
+                      leading: const Icon(Icons.star_border, color: Colors.grey),
+                      title: const Text('プレミアム版にアップグレード'),
+                      subtitle: const Text('月額200円で広告を削除'),
+                      trailing: const Icon(Icons.arrow_forward_ios),
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PremiumUpgradeScreen(),
+                          ),
+                        ).then((_) {
+                          // プレミアム画面から戻ってきたら状態を再読み込み
+                          _loadPremiumStatus();
+                        });
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // 外観設定
             _buildSectionTitle('外観設定', isDark),
-            const SizedBox(height: 16),            _buildCard(
+            const SizedBox(height: 16),
+            _buildCard(
               isDark,
               Column(
                 children: [
@@ -149,14 +192,16 @@ class _SettingScreenState extends State<SettingScreen> {
                     title: const Text('テーマ'),
                     subtitle: Text(AppTheme.themeInfos[themeViewModel.currentTheme]?.name ?? 'ライト'),
                     leading: Icon(AppTheme.themeInfos[themeViewModel.currentTheme]?.icon ?? Icons.light_mode),
-                    trailing: const Icon(Icons.arrow_forward_ios),                    onTap: () {
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const ThemeSelectionScreen(),
                         ),
                       );
-                    },                  ),
+                    },
+                  ),
                   const Divider(height: 1),
                   ListTile(
                     title: const Text('カスタムテーマ作成'),
@@ -624,7 +669,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    leading: Icon(Icons.alternate_email, color: Colors.black87),
+                    leading: const Icon(Icons.alternate_email, color: Colors.black87),
                     title: const Text('X (Twitter)'),
                     subtitle: const Text('最新情報とアップデート'),
                     trailing: const Icon(Icons.open_in_new),
@@ -702,6 +747,7 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
+
   Widget _buildSectionTitle(String title, bool isDark) {
     final themeViewModel = Provider.of<ThemeViewModel>(context, listen: false);
     final shouldBeDark = isDark || 
@@ -717,6 +763,7 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
   }
+
   Widget _buildCard(bool isDark, Widget child) {
     final themeViewModel = Provider.of<ThemeViewModel>(context, listen: false);
     final shouldBeDark = isDark || 
@@ -1419,7 +1466,7 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
-  // データ管理  // 支出検索画面への遷移
+  // 支出検索画面への遷移
   void _navigateToExpenseSearch() {
     Navigator.push(
       context,
@@ -1515,8 +1562,9 @@ class _SettingScreenState extends State<SettingScreen> {
         ).showSnackBar(SnackBar(content: Text('エクスポートに失敗しました: $e')));
       }
     }
-  } // 全データのエクスポート
+  }
 
+  // 全データのエクスポート
   Future<void> _exportAllData() async {
     try {
       await ExportService.exportAllDataToCsv();

@@ -13,7 +13,7 @@ import 'views/splash_screen.dart';
 import 'widgets/background_widget.dart';
 import 'services/database_service.dart';
 import 'services/notification_service.dart';
-import 'services/ad_service.dart';
+import 'services/admob_service.dart';
 import 'services/purchase_service.dart';
 
 void main() async {
@@ -63,29 +63,27 @@ void main() async {
     }
   }
 
-  // 広告サービスの初期化
-  if (Platform.isAndroid || Platform.isIOS) {
-    try {
-      await AdService().initialize();
-      if (kDebugMode) {
-        debugPrint('広告サービス初期化成功');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('広告サービス初期化エラー: $e');
-      }
+  // AdMobサービスの初期化
+  try {
+    await AdMobService().initialize();
+    if (kDebugMode) {
+      debugPrint('AdMobサービス初期化成功');
     }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('AdMobサービス初期化エラー: $e');
+    }
+  }
 
-    // アプリ内課金サービスの初期化
-    try {
-      await PurchaseService().initialize();
-      if (kDebugMode) {
-        debugPrint('アプリ内課金サービス初期化成功');
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint('アプリ内課金サービス初期化エラー: $e');
-      }
+  // アプリ内購入サービスの初期化
+  try {
+    await PurchaseService().initialize();
+    if (kDebugMode) {
+      debugPrint('アプリ内購入サービス初期化成功');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('アプリ内購入サービス初期化エラー: $e');
     }
   }
 

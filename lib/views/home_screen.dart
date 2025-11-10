@@ -6,7 +6,7 @@ import '../viewmodels/income_viewmodel.dart';
 import '../utils/app_theme.dart';
 import '../widgets/expense_form.dart';
 import '../widgets/income_form.dart';
-import '../widgets/banner_ad_widget.dart';
+import '../widgets/ad_banner_widget.dart';
 import 'expense_screen.dart';
 import 'income_screen.dart';
 import 'nisa_screen.dart';
@@ -40,7 +40,13 @@ class _HomeScreenState extends State<HomeScreen> {
         themeViewModel.currentTheme == AppThemeType.cosmic ||
         themeViewModel.currentTheme == AppThemeType.cosmos;
     return Scaffold(
-      body: _screens[_currentIndex],
+      body: Column(
+        children: [
+          Expanded(child: _screens[_currentIndex]),
+          // バナー広告を表示
+          const BannerAdWidget(),
+        ],
+      ),
       floatingActionButton: _buildFloatingActionButtons(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: Column(

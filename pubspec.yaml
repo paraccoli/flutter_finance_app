@@ -75,11 +75,9 @@ dependencies:
   flutter_local_notifications: ^19.2.1
   timezone: ^0.10.1
   
-  # 広告機能
-  google_mobile_ads: ^5.1.0
-  
-  # アプリ内課金
-  in_app_purchase: ^3.2.0
+  # 広告とアプリ内購入
+  google_mobile_ads: ^5.2.0
+  in_app_purchase: ^3.2.1
 
 dev_dependencies:
   flutter_test:
