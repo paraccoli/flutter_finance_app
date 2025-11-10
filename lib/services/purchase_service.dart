@@ -1,12 +1,7 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_android/billing_client_wrappers.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
-import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
-import 'admob_service.dart';
+import 'ad_service.dart';
 
 class PurchaseService {
   static final PurchaseService _instance = PurchaseService._internal();
@@ -35,12 +30,7 @@ class PurchaseService {
         return;
       }
 
-      // iOS向けの設定
-      if (Platform.isIOS) {
-        final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
-            _inAppPurchase.getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
-        await iosPlatformAddition.setDelegate(ExamplePaymentQueueDelegate());
-      }
+      // プラットフォーム固有の追加設定は不要（デフォルト挙動を利用）
 
       // 購入イベントのリスナーを設定
       _subscription = _inAppPurchase.purchaseStream.listen(
@@ -191,7 +181,7 @@ class PurchaseService {
   void _handleSuccessfulPurchase(PurchaseDetails purchaseDetails) async {
     if (purchaseDetails.productID == premiumSubscriptionId) {
       // プレミアム版を有効化
-      await AdMobService().setPremiumStatus(true);
+      await AdService().setPremiumStatus(true);
       _purchasePending = false;
       
       if (kDebugMode) {
@@ -215,18 +205,4 @@ class PurchaseService {
   }
 }
 
-/// iOS用のペイメントキューデリゲート
-class ExamplePaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
-  @override
-  bool shouldContinueTransaction(
-    SKPaymentTransactionWrapper transaction,
-    SKStorefrontWrapper storefront,
-  ) {
-    return true;
-  }
-
-  @override
-  bool shouldShowPriceConsent() {
-    return false;
-  }
-}
+// iOS 固有の StoreKit デリゲートは使用しない（依存削減のため）

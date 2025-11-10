@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:async';
 import 'home_screen.dart';
-import '../services/admob_service.dart';
+import '../services/ad_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -62,14 +62,14 @@ class _SplashScreenState extends State<SplashScreen>
 
   /// ホーム画面への遷移（広告表示含む）
   Future<void> _navigateToHome() async {
-    final admobService = AdMobService.instance;
-    
+    final adService = AdService();
+
     // プレミアム版でない場合は全画面広告をロードして表示
-    if (!admobService.isPremiumUser) {
+    if (!adService.isPremium) {
       try {
-        await admobService.loadInterstitialAd();
-        await admobService.showInterstitialAd();
-        
+        await adService.loadInterstitialAd();
+        await adService.showInterstitialAd();
+
         // 広告が閉じられるまで少し待つ
         await Future.delayed(const Duration(milliseconds: 1000));
       } catch (e) {

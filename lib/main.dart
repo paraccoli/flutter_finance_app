@@ -13,7 +13,7 @@ import 'views/splash_screen.dart';
 import 'widgets/background_widget.dart';
 import 'services/database_service.dart';
 import 'services/notification_service.dart';
-import 'services/admob_service.dart';
+import 'services/ad_service.dart';
 import 'services/purchase_service.dart';
 
 void main() async {
@@ -63,15 +63,15 @@ void main() async {
     }
   }
 
-  // AdMobサービスの初期化
+  // Adサービスの初期化
   try {
-    await AdMobService().initialize();
+    await AdService().initialize();
     if (kDebugMode) {
-      debugPrint('AdMobサービス初期化成功');
+      debugPrint('Adサービス初期化成功');
     }
   } catch (e) {
     if (kDebugMode) {
-      debugPrint('AdMobサービス初期化エラー: $e');
+      debugPrint('Adサービス初期化エラー: $e');
     }
   }
 

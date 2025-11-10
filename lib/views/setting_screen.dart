@@ -4,13 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:cross_file/cross_file.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../services/notification_service.dart';
 import '../services/export_service.dart';
 import '../services/database_service.dart';
 import '../services/budget_service.dart';
-import '../services/admob_service.dart';
+import '../services/ad_service.dart';
 import '../utils/app_theme.dart';
 import 'help_screen.dart';
 import 'budget_setting_screen.dart';
@@ -23,7 +22,8 @@ import 'theme_selection_screen.dart';
 import 'custom_theme_creator_screen.dart';
 import 'custom_theme_manager_screen.dart';
 import 'custom_category_manager_screen.dart';
-import 'premium_upgrade_screen.dart';
+import 'premium_purchase_screen.dart';
+import 'reward_premium_screen.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -57,10 +57,11 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _loadPremiumStatus() async {
     try {
-      final adMobService = AdMobService();
-      await adMobService.initialize(); // 初期化を待つ
+      final adService = AdService();
+      await adService.initialize(); // 初期化を待つ
+      if (!mounted) return;
       setState(() {
-        _isPremium = adMobService.isPremiumUser;
+        _isPremium = adService.isPremium;
       });
     } catch (e) {
       debugPrint('プレミアム状態の読み込みに失敗: $e');
@@ -70,6 +71,7 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _loadNotificationSettings() async {
     final enabled = await _notificationService.isNotificationEnabled();
     final time = await _notificationService.getNotificationTime();
+    if (!mounted) return;
     setState(() {
       _notificationEnabled = enabled;
       _notificationTime = time;
@@ -78,6 +80,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _loadAppInfo() async {
     final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
       _appName = packageInfo.appName;
       _appVersion = packageInfo.version;
@@ -91,6 +94,7 @@ class _SettingScreenState extends State<SettingScreen> {
       final incomes = await dbService.getIncomes();
       final nisaInvestments = await dbService.getNisaInvestments();
 
+      if (!mounted) return;
       setState(() {
         _totalExpenses = expenses.length;
         _totalIncomes = incomes.length;
@@ -103,6 +107,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _loadBudgetAlertSetting() async {
     final enabled = await BudgetService.isBudgetAlertEnabled();
+    if (!mounted) return;
     setState(() {
       _budgetAlertEnabled = enabled;
     });
@@ -160,20 +165,8 @@ class _SettingScreenState extends State<SettingScreen> {
                   ] else ...[
                     ListTile(
                       leading: const Icon(Icons.star_border, color: Colors.grey),
-                      title: const Text('プレミアム版にアップグレード'),
-                      subtitle: const Text('月額200円で広告を削除'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PremiumUpgradeScreen(),
-                          ),
-                        ).then((_) {
-                          // プレミアム画面から戻ってきたら状態を再読み込み
-                          _loadPremiumStatus();
-                        });
-                      },
+                      title: const Text('プレミアム版'),
+                      subtitle: const Text('アップグレードは下の「プレミアム・広告」セクションから行ってください'),
                     ),
                   ],
                 ],
@@ -789,6 +782,7 @@ class _SettingScreenState extends State<SettingScreen> {
     if (picked != null) {
       final timeString =
           '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      if (!mounted) return;
       setState(() {
         _notificationTime = timeString;
       });
@@ -1125,19 +1119,19 @@ class _SettingScreenState extends State<SettingScreen> {
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('閉じる'),
             ),
-            TextButton(
-              onPressed: () async {
-                try {
-                  // 共有ダイアログでファイルをエクスポート
-                  await Share.shareXFiles([XFile(filePath)], text: 'Money:G バックアップファイル');
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('共有に失敗しました: $e')));
-                  }
-                }
-              },
-              child: const Text('端末に保存 / 共有'),
-            ),
+                  TextButton(
+                  onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      // 共有ダイアログでファイルをエクスポート（SharePlus API を使用）
+                      await SharePlus.instance.share(ShareParams(files: [XFile(filePath)], text: 'Money:G バックアップファイル'));
+                    } catch (e) {
+                      if (!mounted) return;
+                      messenger.showSnackBar(SnackBar(content: Text('共有に失敗しました: $e')));
+                    }
+                  },
+                  child: const Text('端末に保存 / 共有'),
+                ),
           ],
         );
       },
@@ -1340,7 +1334,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text('$fileName'),
+              Text(fileName),
               const SizedBox(height: 12),
               const Text(
                 'この操作は取り消せません。続行しますか？',

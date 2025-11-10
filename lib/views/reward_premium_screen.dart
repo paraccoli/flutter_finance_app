@@ -48,33 +48,32 @@ class _RewardPremiumScreenState extends State<RewardPremiumScreen> {
       
       if (success) {
         await _checkPremiumStatus();
-        if (mounted) {
-          // 成功時にスナックバーとダイアログで通知
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('🎉 24時間のプレミアム機能が解放されました！'),
-              backgroundColor: Colors.green,
-            ),
-          );
+        // 残り時間を取得（await はここで済ませる）
+        final remaining = _remainingTime.isNotEmpty ? _remainingTime : await RewardService().getRemainingTimeString();
+        debugPrint('RewardPremiumScreen: showing dialog with remaining=$remaining');
+        if (!mounted) return;
+        // 成功時にスナックバーとダイアログで通知
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 24時間のプレミアム機能が解放されました！'),
+            backgroundColor: Colors.green,
+          ),
+        );
 
-          // 残り時間を取得してダイアログ表示
-          final remaining = _remainingTime.isNotEmpty ? _remainingTime : await RewardService().getRemainingTimeString();
-          debugPrint('RewardPremiumScreen: showing dialog with remaining=$remaining');
-          showDialog<void>(
-            context: context,
-            barrierDismissible: true,
-            builder: (context) => AlertDialog(
-              title: const Text('プレミアム解放'),
-              content: Text('広告の視聴により、24時間のプレミアムが有効化されました。\n残り時間: $remaining'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
-          );
-        }
+        showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => AlertDialog(
+            title: const Text('プレミアム解放'),
+            content: Text('広告の視聴により、24時間のプレミアムが有効化されました。\n残り時間: $remaining'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

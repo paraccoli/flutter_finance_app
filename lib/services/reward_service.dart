@@ -90,9 +90,9 @@ class RewardService {
     final remainingMinutes = minutes % 60;
     
     if (hours > 0) {
-      return '${hours}時間${remainingMinutes}分';
+      return '$hours時間$remainingMinutes分';
     } else {
-      return '${remainingMinutes}分';
+      return '$remainingMinutes分';
     }
   }
 

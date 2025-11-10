@@ -8,10 +8,7 @@
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         
-        <!-- AdMobアプリケーションID (テスト用) -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713"/>
+        <!-- AdMobアプリケーションID (1つだけ必要) -->
             
         <activity
             android:name=".MainActivity"
