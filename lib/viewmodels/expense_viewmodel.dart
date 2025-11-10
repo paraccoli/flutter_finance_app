@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/expense.dart';
 import '../services/database_service.dart';
 import '../services/category_service.dart';
+import '../services/ad_service.dart';
 
 class ExpenseViewModel extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
   List<Expense> _expenses = [];
 
-  // 表示用の日付範囲
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
-  DateTime _endDate = DateTime.now();
+  // 表示用の日付範囲（デフォルト: 今月の初日〜今月末）
+  DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0, 23, 59, 59);
 
   // ゲッター
   List<Expense> get expenses => _expenses;
@@ -66,6 +67,11 @@ class ExpenseViewModel extends ChangeNotifier {
       debugPrint('ExpenseViewModel: 支出の追加が完了しました');
       await loadExpenses();
       debugPrint('ExpenseViewModel: 支出リストの再読み込みが完了しました');
+      try {
+        await AdService().showInterstitialAd();
+      } catch (e) {
+        debugPrint('インタースティシャル表示エラー: $e');
+      }
     } catch (e, stackTrace) {
       debugPrint('ExpenseViewModel: 支出追加中にエラーが発生しました: $e');
       debugPrint('スタックトレース: $stackTrace');

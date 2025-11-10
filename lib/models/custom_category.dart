@@ -42,10 +42,18 @@ class CustomCategory {
   Color get color => Color(colorValue);
 
   /// アイコンを取得するゲッター
-  IconData get icon => IconData(
-        iconCodePoint,
-        fontFamily: iconFontFamily,
+  IconData get icon {
+    // データベースに保存されている codePoint を既定の定数アイコンリストと照合し、
+    // 一致するものがあればその const IconData を返す。これによりツリーシェイクが効く。
+    try {
+      return CategoryIcons.predefinedIcons.firstWhere(
+        (ic) => ic.codePoint == iconCodePoint && (ic.fontFamily ?? 'MaterialIcons') == iconFontFamily,
+        orElse: () => Icons.category,
       );
+    } catch (_) {
+      return Icons.category;
+    }
+  }
 
   /// データベースから読み込むためのファクトリメソッド
   factory CustomCategory.fromMap(Map<String, dynamic> map) {

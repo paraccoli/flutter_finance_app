@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/custom_theme_settings.dart';
+import '../services/ad_service.dart';
+import 'reward_premium_screen.dart';
+import 'premium_purchase_screen.dart';
 import '../viewmodels/theme_viewmodel.dart';
 
 /// カスタムテーマ作成画面
@@ -380,6 +383,46 @@ class _CustomThemeCreatorScreenState extends State<CustomThemeCreatorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('テーマ名を入力してください')),
       );
+      return;
+    }
+
+    // プレミアム権限の防御的チェック
+    if (!(AdService().isPremium || AdService().isTemporaryPremiumActive)) {
+      // 非プレミアム利用者は保存前にプレミアムへ誘導
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('プレミアム限定機能'),
+          content: const Text('カスタムテーマの保存はプレミアム限定です。アップグレードしますか？'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RewardPremiumScreen()),
+                );
+              },
+              child: const Text('広告視聴で体験'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PremiumPurchaseScreen()),
+                );
+              },
+              child: const Text('プレミアムを見る'),
+            ),
+          ],
+        ),
+      );
+
       return;
     }
 

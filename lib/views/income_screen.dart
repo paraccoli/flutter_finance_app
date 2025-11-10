@@ -144,16 +144,29 @@ class IncomeScreen extends StatelessWidget {
     BuildContext context,
     IncomeViewModel viewModel,
   ) async {
-    final initialDateRange = DateTimeRange(
-      start: viewModel.startDate,
-      end: viewModel.endDate,
-    );
+    // lastDate は現在日時なので、initialDateRange の end がこれを超えないように調整する
+    final DateTime lastDate = DateTime.now();
+    DateTime start = viewModel.startDate;
+    DateTime end = viewModel.endDate;
+
+    if (start.isAfter(lastDate)) {
+      start = lastDate;
+    }
+    if (end.isAfter(lastDate)) {
+      end = lastDate;
+    }
+    if (start.isAfter(end)) {
+      start = lastDate;
+      end = lastDate;
+    }
+
+    final initialDateRange = DateTimeRange(start: start, end: end);
 
     final pickedDateRange = await showDateRangePicker(
       context: context,
       initialDateRange: initialDateRange,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: lastDate,
     );
 
     if (pickedDateRange != null) {

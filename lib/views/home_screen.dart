@@ -49,41 +49,51 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: _buildFloatingActionButtons(),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
-        selectedItemColor: isDark ? Colors.blue : const Color(0xFF007AFF),
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: '支出',
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // バナー広告
+          RepaintBoundary(
+            child: const BannerAdWidget(),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.attach_money),
-            label: '収入',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up),
-            label: 'NISA',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: '資産分析',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assessment),
-            label: '月次レポート',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '設定',
+          // BottomNavigationBar
+          BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+            selectedItemColor: isDark ? Colors.blue : const Color(0xFF007AFF),
+            unselectedItemColor: Colors.grey,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_cart),
+                label: '支出',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.attach_money),
+                label: '収入',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.trending_up),
+                label: 'NISA',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.analytics),
+                label: '資産分析',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.assessment),
+                label: '月次レポート',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.settings),
+                label: '設定',
+              ),
+            ],
           ),
         ],
       ),

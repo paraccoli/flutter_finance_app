@@ -180,16 +180,31 @@ class ExpenseScreen extends StatelessWidget {
   }
   
   Future<void> _selectDateRange(BuildContext context, ExpenseViewModel viewModel) async {
-    final initialDateRange = DateTimeRange(
-      start: viewModel.startDate,
-      end: viewModel.endDate,
-    );
-    
+    // showDateRangePicker の lastDate は通常現在日時なので
+    // initialDateRange.end が lastDate より後にならないようクランプする
+    final DateTime lastDate = DateTime.now();
+    DateTime start = viewModel.startDate;
+    DateTime end = viewModel.endDate;
+
+    if (start.isAfter(lastDate)) {
+      start = lastDate;
+    }
+    if (end.isAfter(lastDate)) {
+      end = lastDate;
+    }
+    if (start.isAfter(end)) {
+      // どちらかが未来日で調整の結果 start が end を超えた場合は両方を lastDate に合わせる
+      start = lastDate;
+      end = lastDate;
+    }
+
+    final initialDateRange = DateTimeRange(start: start, end: end);
+
     final pickedDateRange = await showDateRangePicker(
       context: context,
       initialDateRange: initialDateRange,
       firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
+      lastDate: lastDate,
     );
     
     if (pickedDateRange != null) {

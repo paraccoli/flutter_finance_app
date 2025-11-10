@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io' show Platform;
@@ -17,6 +18,12 @@ import 'services/purchase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // UI設定の最適化
+  if (Platform.isAndroid) {
+    // Androidでのフレーム描画を最適化
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  }
 
   // プラットフォームに応じてSQLiteの初期化
   if (!Platform.isAndroid && !Platform.isIOS) {

@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import '../models/income.dart';
 import '../services/database_service.dart';
 import '../services/category_service.dart';
+import '../services/ad_service.dart';
 
 class IncomeViewModel extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
   List<Income> _incomes = [];
 
-  // 表示用の日付範囲
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
-  DateTime _endDate = DateTime.now();
+  // 表示用の日付範囲（デフォルト: 今月の初日〜今月末）
+  DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0, 23, 59, 59);
 
   // ゲッター
   List<Income> get incomes => _incomes;
@@ -51,6 +52,11 @@ class IncomeViewModel extends ChangeNotifier {
       debugPrint('IncomeViewModel: 収入の追加が完了しました');
       await loadIncomes();
       debugPrint('IncomeViewModel: 収入リストの再読み込みが完了しました');
+      try {
+        await AdService().showInterstitialAd();
+      } catch (e) {
+        debugPrint('インタースティシャル表示エラー: $e');
+      }
     } catch (e, stackTrace) {
       debugPrint('IncomeViewModel: 収入追加中にエラーが発生しました: $e');
       debugPrint('スタックトレース: $stackTrace');
