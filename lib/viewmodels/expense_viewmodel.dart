@@ -8,9 +8,9 @@ class ExpenseViewModel extends ChangeNotifier {
   final DatabaseService _databaseService = DatabaseService();
   List<Expense> _expenses = [];
 
-  // 表示用の日付範囲
-  DateTime _startDate = DateTime.now().subtract(const Duration(days: 30));
-  DateTime _endDate = DateTime.now();
+  // 表示用の日付範囲（デフォルト: 今月の初日〜今月末）
+  DateTime _startDate = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _endDate = DateTime(DateTime.now().year, DateTime.now().month + 1, 0, 23, 59, 59);
 
   // ゲッター
   List<Expense> get expenses => _expenses;
