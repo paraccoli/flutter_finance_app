@@ -195,10 +195,14 @@ class _MoneyGImportScreenState extends State<MoneyGImportScreen> {
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 12),
-            ...ImportDataType.values.map((type) => RadioListTile<ImportDataType>(
+            ...ImportDataType.values.map((type) => 
+              // ignore: deprecated_member_use
+              RadioListTile<ImportDataType>(
               title: Text(type.displayName),
               value: type,
+              // ignore: deprecated_member_use
               groupValue: _selectedDataType,
+              // ignore: deprecated_member_use
               onChanged: (value) {
                 setState(() {
                   _selectedDataType = value!;

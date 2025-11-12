@@ -27,21 +27,7 @@ class _PremiumPurchaseScreenState extends State<PremiumPurchaseScreen> {
     });
 
     await _purchaseService.initialize();
-    // PurchaseService は products を保持しているので、該当プロダクトを検索して取得する
-    try {
-      final products = _purchaseService.products;
-      if (products.isNotEmpty) {
-        try {
-          _product = products.firstWhere((p) => p.id == PurchaseService.premiumSubscriptionId);
-        } catch (_) {
-          _product = products.first;
-        }
-      } else {
-        _product = null;
-      }
-    } catch (e) {
-      _product = null;
-    }
+    _product = _purchaseService.getRemoveAdsProduct();
 
     setState(() {
       _isLoading = false;
@@ -59,7 +45,7 @@ class _PremiumPurchaseScreenState extends State<PremiumPurchaseScreen> {
     });
 
     try {
-      final success = await _purchaseService.purchasePremium();
+      final success = await _purchaseService.purchaseRemoveAds();
       if (success) {
         _showMessage('購入手続きを開始しました。');
       } else {

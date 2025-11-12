@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'ad_service.dart';
+import 'admob_service.dart';
 
 class PurchaseService {
   static final PurchaseService _instance = PurchaseService._internal();
@@ -30,7 +30,8 @@ class PurchaseService {
         return;
       }
 
-      // プラットフォーム固有の追加設定は不要（デフォルト挙動を利用）
+      // iOS向けの設定（基本設定のみ）
+      // プラットフォーム固有の詳細設定は必要に応じて追加
 
       // 購入イベントのリスナーを設定
       _subscription = _inAppPurchase.purchaseStream.listen(
@@ -181,7 +182,7 @@ class PurchaseService {
   void _handleSuccessfulPurchase(PurchaseDetails purchaseDetails) async {
     if (purchaseDetails.productID == premiumSubscriptionId) {
       // プレミアム版を有効化
-      await AdService().setPremiumStatus(true);
+      await AdMobService().setPremiumStatus(true);
       _purchasePending = false;
       
       if (kDebugMode) {
@@ -199,10 +200,24 @@ class PurchaseService {
   /// サービスが利用可能かどうか
   bool get isAvailable => _isAvailable;
 
+  /// 広告削除商品を取得（プレミアム版と同じ）
+  ProductDetails? getRemoveAdsProduct() {
+    if (_products.isEmpty) return null;
+    return _products.firstWhere(
+      (ProductDetails product) => product.id == premiumSubscriptionId,
+      orElse: () => _products.first,
+    );
+  }
+
+  /// 広告削除を購入（プレミアム版購入と同じ）
+  Future<bool> purchaseRemoveAds() async {
+    return await purchasePremium();
+  }
+
   /// リソースの解放
   void dispose() {
     _subscription.cancel();
   }
 }
 
-// iOS 固有の StoreKit デリゲートは使用しない（依存削減のため）
+

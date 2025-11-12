@@ -223,7 +223,7 @@ class _QuickExpenseWidgetState extends State<QuickExpenseWidget> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<CategoryItem>(
                     decoration: const InputDecoration(labelText: 'カテゴリ'),
-                    value: selectedCategory,
+                    initialValue: selectedCategory,
                     onChanged: (value) {
                       setState(() {
                         selectedCategory = value!;

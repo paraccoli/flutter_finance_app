@@ -118,7 +118,7 @@ class _CSVImportScreenState extends State<CSVImportScreen> {
               const SizedBox(height: 8),
             ],
             DropdownButtonFormField<CSVFormat>(
-              value: _selectedFormat ?? _importResult!.detectedFormat,
+              initialValue: _selectedFormat ?? _importResult!.detectedFormat,
               decoration: const InputDecoration(
                 labelText: 'フォーマットを選択',
                 border: OutlineInputBorder(),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../services/ad_service.dart';
+import '../services/admob_service.dart';
 
 /// バナー広告を表示するウィジェット
 class BannerAdWidget extends StatefulWidget {
@@ -23,14 +23,14 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   /// バナー広告を読み込む
   void _loadBannerAd() {
-    final adService = AdService();
-
+    final admobService = AdMobService.instance;
+    
     // プレミアム版の場合は広告を表示しない
-    if (adService.isPremium || adService.isTemporaryPremiumActive) {
+    if (admobService.isPremiumUser) {
       return;
     }
 
-    _bannerAd = adService.createBannerAd();
+    _bannerAd = admobService.createBannerAd();
     _bannerAd?.load().then((_) {
       if (mounted) {
         setState(() {
@@ -52,10 +52,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final adService = AdService();
-
+    final admobService = AdMobService.instance;
+    
     // プレミアム版またはバナー広告が読み込まれていない場合は空のコンテナを返す
-    if (adService.isPremium || adService.isTemporaryPremiumActive || !_isLoaded || _bannerAd == null) {
+    if (admobService.isPremiumUser || !_isLoaded || _bannerAd == null) {
       return const SizedBox.shrink();
     }
 
@@ -94,7 +94,8 @@ class AdAwareScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final adService = AdService();
+    final admobService = AdMobService.instance;
+    
     return Scaffold(
       appBar: appBar ?? (title.isNotEmpty ? AppBar(
         title: Text(title),
@@ -105,7 +106,7 @@ class AdAwareScaffold extends StatelessWidget {
         children: [
           Expanded(child: body),
           // プレミアム版でない場合のみバナー広告を表示
-          if (!adService.isPremium) const BannerAdWidget(),
+          if (!admobService.isPremiumUser) const BannerAdWidget(),
         ],
       ),
       floatingActionButton: floatingActionButton,
