@@ -4,7 +4,7 @@ import '../viewmodels/theme_viewmodel.dart';
 import '../utils/app_theme.dart';
 import '../models/custom_theme_settings.dart';
 import '../services/ad_service.dart';
-import 'premium_purchase_screen.dart';
+import 'premium_upgrade_screen.dart';
 import 'reward_premium_screen.dart';
 import 'custom_theme_creator_screen.dart';
 
@@ -152,13 +152,13 @@ class ThemeSelectionScreen extends StatelessWidget {
                                             },
                                             child: const Text('広告視聴で体験'),
                                           ),
-                                          ElevatedButton(
+                                            ElevatedButton(
                                             onPressed: () {
                                               Navigator.of(ctx).pop();
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
-                                                  builder: (context) => const PremiumPurchaseScreen(),
+                                                  builder: (context) => const PremiumUpgradeScreen(),
                                                 ),
                                               );
                                             },
@@ -212,18 +212,18 @@ class ThemeSelectionScreen extends StatelessWidget {
                         },
                         child: const Text('広告視聴で体験'),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(ctx).pop();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const PremiumPurchaseScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text('プレミアムを見る'),
-                      ),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  Navigator.of(ctx).pop();
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const PremiumUpgradeScreen(),
+                                                    ),
+                                                  );
+                                                },
+                                                child: const Text('プレミアムを見る'),
+                                              ),
                     ],
                   ),
                 );

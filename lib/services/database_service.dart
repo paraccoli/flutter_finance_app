@@ -12,6 +12,7 @@ import '../models/expense.dart';
 import '../models/income.dart';
 import '../models/nisa_investment.dart';
 import '../models/custom_category.dart';
+import '../models/recurring_expense.dart';
 
 class DatabaseService {
   static final DatabaseService _instance = DatabaseService._internal();
@@ -41,7 +42,7 @@ class DatabaseService {
     // モバイル/デスクトッププラットフォームで適切なデータベースファクトリを使用
     final db = await openDatabase(
       path,
-      version: 6,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -199,6 +200,48 @@ class DatabaseService {
         debugPrint('expenses テーブル更新中にエラー（v6）: $e');
       }
     }
+    if (oldVersion < 7) {
+      // Add recurring_expenses table for RecurringExpense feature
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS recurring_expenses(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            amount REAL NOT NULL,
+            category INTEGER,
+            customCategoryId INTEGER,
+            cycle INTEGER NOT NULL,
+            intervalMonths INTEGER,
+            startDate TEXT,
+            endDate TEXT,
+            nextDueDate TEXT,
+            autoRegister INTEGER NOT NULL DEFAULT 0,
+            notes TEXT,
+            state INTEGER NOT NULL DEFAULT 0
+          )
+        ''');
+        debugPrint('recurring_expenses テーブルを作成しました (v7)');
+      } catch (e) {
+        debugPrint('recurring_expenses テーブル作成中にエラー: $e');
+      }
+    }
+    if (oldVersion < 8) {
+      // Add recurringId and isProvisional to expenses for linking auto-created expenses
+      try {
+        final info = await db.rawQuery("PRAGMA table_info(expenses)");
+        final columnNames = info.map((c) => c['name'].toString()).toList();
+        if (!columnNames.contains('recurringId')) {
+          await db.execute('ALTER TABLE expenses ADD COLUMN recurringId INTEGER');
+          debugPrint('expenses テーブルにrecurringIdカラムを追加しました (v8)');
+        }
+        if (!columnNames.contains('isProvisional')) {
+          await db.execute('ALTER TABLE expenses ADD COLUMN isProvisional INTEGER NOT NULL DEFAULT 0');
+          debugPrint('expenses テーブルにisProvisionalカラムを追加しました (v8)');
+        }
+      } catch (e) {
+        debugPrint('expenses テーブルのマイグレーション(v8)中にエラー: $e');
+      }
+    }
   }
 
   // テーブルの作成
@@ -211,7 +254,9 @@ class DatabaseService {
         date TEXT NOT NULL,
         category INTEGER NOT NULL,
         customCategoryId INTEGER,
-        note TEXT
+        note TEXT,
+        recurringId INTEGER,
+        isProvisional INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -259,6 +304,25 @@ class DatabaseService {
     
     // デフォルトカテゴリの挿入
     await _insertDefaultCategories(db);
+
+    // recurring_expenses テーブル
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS recurring_expenses(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        amount REAL NOT NULL,
+        category INTEGER,
+        customCategoryId INTEGER,
+        cycle INTEGER NOT NULL,
+        intervalMonths INTEGER,
+        startDate TEXT,
+        endDate TEXT,
+        nextDueDate TEXT,
+        autoRegister INTEGER NOT NULL DEFAULT 0,
+        notes TEXT,
+        state INTEGER NOT NULL DEFAULT 0
+      )
+    ''');
   }
   // 支出データの操作メソッド
   Future<int> insertExpense(Expense expense) async {
@@ -526,6 +590,41 @@ class DatabaseService {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // -----------------------------
+  // Recurring expense operations
+  // -----------------------------
+  Future<int> insertRecurringExpense(RecurringExpense r) async {
+    final db = await database;
+    return await db.insert('recurring_expenses', r.toMap());
+  }
+
+  Future<List<RecurringExpense>> getRecurringExpenses() async {
+    final db = await database;
+    final maps = await db.query('recurring_expenses', orderBy: 'name ASC');
+    return List.generate(maps.length, (i) => RecurringExpense.fromMap(maps[i]));
+  }
+
+  Future<int> updateRecurringExpense(RecurringExpense r) async {
+    final db = await database;
+    return await db.update('recurring_expenses', r.toMap(), where: 'id = ?', whereArgs: [r.id]);
+  }
+
+  Future<int> deleteRecurringExpense(int id) async {
+    final db = await database;
+    return await db.delete('recurring_expenses', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Return recurring expenses whose nextDueDate is <= provided date (inclusive)
+  Future<List<RecurringExpense>> getRecurringDueByDate(DateTime date) async {
+    final db = await database;
+    final dateStr = date.toIso8601String().split('T').first; // YYYY-MM-DD
+    final maps = await db.rawQuery(
+      "SELECT * FROM recurring_expenses WHERE nextDueDate IS NOT NULL AND date(nextDueDate) <= date(?) AND state = 0",
+      [dateStr],
+    );
+    return List.generate(maps.length, (i) => RecurringExpense.fromMap(maps[i]));
   }
 
   // カスタムカテゴリデータの操作メソッド

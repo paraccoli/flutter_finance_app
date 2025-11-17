@@ -23,8 +23,8 @@ import 'theme_selection_screen.dart';
 import 'custom_theme_creator_screen.dart';
 import 'custom_theme_manager_screen.dart';
 import 'custom_category_manager_screen.dart';
+import 'recurring_list_screen.dart';
 import 'premium_upgrade_screen.dart';
-import 'premium_purchase_screen.dart';
 import 'reward_premium_screen.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -314,17 +314,11 @@ class _SettingScreenState extends State<SettingScreen> {
                       ),
                     ),
                   ] else ...[
-                    ListTile(
-                      leading: const Icon(Icons.stars, color: Colors.purple),
-                      title: const Text('プレミアム版にアップグレード'),
-                      subtitle: const Text('広告を削除してより快適に'),
-                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PremiumPurchaseScreen(),
-                        ),
-                      ),
+                    const ListTile(
+                      leading: Icon(Icons.stars, color: Colors.purple),
+                      title: Text('プレミアム版'),
+                      subtitle: Text('広告を削除してより快適に'),
+                      trailing: Icon(Icons.lock_outline),
                     ),
                     const Divider(height: 1),
                     ListTile(
@@ -372,7 +366,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       });
                       await _notificationService.setNotificationEnabled(value);
                     },
-                    activeThumbColor: Colors.blue,
+                    activeColor: Colors.blue,
                   ),
                   if (_notificationEnabled) ...[
                     const Divider(height: 1),
@@ -537,6 +531,19 @@ class _SettingScreenState extends State<SettingScreen> {
                     subtitle: const Text('MoneyG形式のCSVファイルをインポート'),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                     onTap: () => _navigateToMoneyGImport(),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.repeat, color: Colors.teal),
+                    title: const Text('定期支出の管理'),
+                    subtitle: const Text('定期的な支出を確認・編集します'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RecurringListScreen(),
+                      ),
+                    ),
                   ),
                   const Divider(height: 1),
                   ListTile(
@@ -1638,7 +1645,7 @@ class _SettingScreenState extends State<SettingScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const PremiumPurchaseScreen(),
+                  builder: (context) => const PremiumUpgradeScreen(),
                 ),
               );
             },
@@ -1695,7 +1702,7 @@ class _SettingScreenState extends State<SettingScreen> {
               Navigator.of(ctx).pop();
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const PremiumPurchaseScreen()),
+                MaterialPageRoute(builder: (context) => const PremiumUpgradeScreen()),
               );
             },
             child: const Text('プレミアムを見る'),

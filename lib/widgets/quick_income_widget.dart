@@ -224,7 +224,7 @@ class _QuickIncomeWidgetState extends State<QuickIncomeWidget> {
                   const SizedBox(height: 16),
                   DropdownButtonFormField<CategoryItem>(
                     decoration: const InputDecoration(labelText: 'カテゴリ'),
-                    initialValue: selectedCategory,
+                    value: selectedCategory,
                     onChanged: (value) {
                       setState(() {
                         selectedCategory = value!;

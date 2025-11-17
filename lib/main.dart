@@ -15,6 +15,7 @@ import 'services/database_service.dart';
 import 'services/notification_service.dart';
 import 'services/admob_service.dart';
 import 'services/purchase_service.dart';
+import 'services/recurring_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,14 @@ void main() async {
     // デバッグビルドでのみログ出力
     if (kDebugMode) {
       debugPrint('データベース初期化成功: ${db.path}');
+    }
+
+    // 実行時に期限が来ている定期支出の自動登録を試みる（ONにしているもののみ）
+    try {
+      await RecurringService().runAutoRegisterFor(DateTime.now());
+      if (kDebugMode) debugPrint('定期支出の自動登録を実行しました');
+    } catch (e) {
+      if (kDebugMode) debugPrint('定期支出自動登録エラー: $e');
     }
 
     // テーブルが存在するか確認

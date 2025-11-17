@@ -154,7 +154,7 @@ class _IncomeFormState extends State<IncomeForm> {
                 labelText: 'カテゴリ',
                 prefixIcon: Icon(Icons.category),
               ),
-              initialValue: _selectedCategoryItem,
+              value: _selectedCategoryItem,
               items: _availableCategories.map((item) {
                 return DropdownMenuItem<CategoryItem>(
                   value: item,

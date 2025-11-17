@@ -29,6 +29,8 @@ class Expense {
   final DateTime date; // 日付
   final ExpenseCategory category; // カテゴリ（レガシー用）
   final int? customCategoryId; // カスタムカテゴリID（新規用）
+  final int? recurringId; // 定期支出 id（紐付け用）
+  final bool isProvisional; // 自動作成された暫定支出かどうか
   final String? note; // メモ（オプション）
 
   Expense({
@@ -37,6 +39,8 @@ class Expense {
     required this.date,
     required this.category,
     this.customCategoryId,
+    this.recurringId,
+    this.isProvisional = false,
     this.note,
   });
 
@@ -48,6 +52,8 @@ class Expense {
       date: DateTime.parse(map['date']),
       category: ExpenseCategory.values[map['category']],
       customCategoryId: map['customCategoryId'],
+      recurringId: map['recurringId'] as int?,
+      isProvisional: (map['isProvisional'] as int? ?? 0) == 1,
       note: map['note'],
     );
   }
@@ -60,6 +66,8 @@ class Expense {
       'date': date.toIso8601String(),
       'category': category.index,
       'customCategoryId': customCategoryId,
+      'recurringId': recurringId,
+      'isProvisional': isProvisional ? 1 : 0,
       'note': note,
     };
   }
@@ -71,6 +79,8 @@ class Expense {
     DateTime? date,
     ExpenseCategory? category,
     int? customCategoryId,
+    int? recurringId,
+    bool? isProvisional,
     String? note,
   }) {
     return Expense(
@@ -79,6 +89,8 @@ class Expense {
       date: date ?? this.date,
       category: category ?? this.category,
       customCategoryId: customCategoryId ?? this.customCategoryId,
+      recurringId: recurringId ?? this.recurringId,
+      isProvisional: isProvisional ?? this.isProvisional,
       note: note ?? this.note,
     );
   }

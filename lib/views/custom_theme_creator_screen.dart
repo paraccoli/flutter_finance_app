@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/custom_theme_settings.dart';
 import '../services/ad_service.dart';
 import 'reward_premium_screen.dart';
-import 'premium_purchase_screen.dart';
+import 'premium_upgrade_screen.dart';
 import '../viewmodels/theme_viewmodel.dart';
 
 /// カスタムテーマ作成画面
@@ -409,12 +409,12 @@ class _CustomThemeCreatorScreenState extends State<CustomThemeCreatorScreen> {
               },
               child: const Text('広告視聴で体験'),
             ),
-            ElevatedButton(
+                ElevatedButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const PremiumPurchaseScreen()),
+                  MaterialPageRoute(builder: (context) => const PremiumUpgradeScreen()),
                 );
               },
               child: const Text('プレミアムを見る'),
